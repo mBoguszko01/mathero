@@ -67,7 +67,7 @@
 }
 @media (min-width: 425px) {
   .home-upper-container {
-    background-image: url("heroPageImg.png");
+    background-image: url("/heroPageImg.png");
     background-position: 50% 0%;
     width: 100%;
     max-width: 100%;
@@ -88,8 +88,6 @@
 }
 @media (min-width: 768px) {
   .home-upper-container {
-    background-image: url("/heroPageImg-lg.jpg");
-    width: 100%;
     height: clamp(0px, 75vh, 700px);
   }
   .home-upper-text-l {
