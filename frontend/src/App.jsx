@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { AppRouter } from "./router/AppRouter";
 function App() {
   const [ping, setPing] = useState("");
 
@@ -11,9 +11,13 @@ function App() {
   }, []);
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>MATHero 🧮</h1>
-      <p>Połączenie z backendem: <strong>{ping || "Łączenie..."}</strong></p>
+    <div className="AppContiner">
+      <main>
+        <AppRouter />
+      </main>
+      <footer>
+        <p>{ping ? `Server says: ${ping}` : "Pinging server..."}</p>
+      </footer>
     </div>
   );
 }

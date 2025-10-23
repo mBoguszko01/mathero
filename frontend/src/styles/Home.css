@@ -1,0 +1,57 @@
+.home-upper-container{
+    background-color: #5EABD6;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.home-upper-text-container{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+}
+.home-upper-text-l{
+    font-size: 24px;
+    margin: 0;
+    margin-top: 2.4rem;
+
+}
+.home-upper-text-sm{
+    font-size: 1rem !important;
+    font-weight: bold;
+    margin: 0;
+}
+.home-upper-text-container h1{
+    font-size: 48px;
+    font-weight: bold;
+    margin: 0;
+}
+.home-buttons-container{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 2.5rem;
+}
+.home-btn{
+    width: 20rem;
+    height: 2.875rem;
+    border-radius: 5px;
+    border: none;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+}
+.home-signup-btn{
+    background-color: #42BA96;
+}
+.home-signin-btn{
+    background-color: #FEFBC7;
+    color: #A3A06B;
+}
+.home-lower-container{
+    width: 20rem;
+    margin: auto;
+}
