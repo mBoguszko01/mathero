@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AppRouter } from "./router/AppRouter";
+import Footer from "./components/layout/Footer";
 function App() {
   const [ping, setPing] = useState("");
 
@@ -15,8 +16,9 @@ function App() {
       <main>
         <AppRouter />
       </main>
+      <p>{ping ? `Server says: ${ping}` : "Pinging server..."}</p>
       <footer>
-        <p>{ping ? `Server says: ${ping}` : "Pinging server..."}</p>
+        <Footer />
       </footer>
     </div>
   );

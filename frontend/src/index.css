@@ -4,6 +4,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  letter-spacing: 0.05rem;
 }
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -14,12 +15,13 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+}
+#root{
+  width: 100%;;
 }
 .AppContiner main{
   width: 100%;
 }
-.hero-img{
-  width: 100%;
-  height: auto;
-}
+
 

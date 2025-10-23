@@ -1,0 +1,23 @@
+footer{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    background-color: #5eabd6;
+    color: #fff;
+}
+footer div{
+    margin: 0 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+@media (max-width: 787px) {
+    footer div{
+        margin: 1rem;
+    }
+}
+@media (max-width: 375px) {
+    footer{
+            font-size: 0.5rem;
+    }
+}
