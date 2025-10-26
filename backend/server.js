@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import pkg from "pg";
 import userRoutes from "./routes/users.js";
+import authRoutes from "./routes/auth.js"; // ✅ DODAJ TEN IMPORT
+import pool from "./db/index.js";
 
 dotenv.config();
 const { Pool } = pkg;
@@ -13,20 +15,16 @@ const PORT = process.env.PORT || 10000;
 app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
 app.use(express.json());
 
-// Połączenie z bazą
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
-
-// Przykładowy endpoint testowy
+// Testowy endpoint
 app.get("/api/ping", (req, res) => {
   res.json({ message: "pong" });
 });
 
-// Import routes
-app.use("/api/users", userRoutes(pool));
+// Główne trasy API
+app.use("/api/users", userRoutes(pool)); // Twoje obecne endpointy użytkownika
+app.use("/api/auth", authRoutes);        // ✅ Trasa do rejestracji i logowania
 
+// Start serwera
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
