@@ -13,13 +13,12 @@ function App() {
 
   return (
     <div className="AppContiner">
+      <header></header>
       <main>
         <AppRouter />
       </main>
       <p>{ping ? `Server says: ${ping}` : "Pinging server..."}</p>
-      <footer>
-        <Footer />
-      </footer>
+      <Footer /> 
     </div>
   );
 }

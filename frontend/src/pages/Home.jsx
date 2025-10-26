@@ -1,4 +1,6 @@
 import "../styles/Home.css";
+import { Link } from "react-router";
+
 const Home = () => {
   return (
     <>
@@ -20,10 +22,16 @@ const Home = () => {
             </div>
 
             <div className="home-buttons-container">
-              <button className="home-btn home-signup-btn">
-                Zarejestruj się
-              </button>
-              <button className="home-btn home-signin-btn">Zaloguj się</button>
+              <Link to="/signup">
+                <button className="home-btn home-signup-btn">
+                  Zarejestruj się
+                </button>
+              </Link>
+              <Link to="/signin">
+                <button className="home-btn home-signin-btn">
+                  Zaloguj się
+                </button>
+              </Link>
             </div>
           </div>
         </div>
