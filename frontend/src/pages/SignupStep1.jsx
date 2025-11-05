@@ -1,10 +1,12 @@
 import { useState } from "react";
 import "../styles/Signup.css";
 import { Link } from "react-router";
-import { userApi } from "../api/userApi";
-import SignupInfo from "../components/SignupInfo.jsx";
+import { userApi } from "../api/userApi.js";
+import Info from "../components/Info.jsx";
+import { useNavigate } from "react-router";
 
-const Signup = () => {
+const SignupStep1 = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -47,7 +49,6 @@ const Signup = () => {
     if (Object.keys(validationErrors).length === 0) {
       setErrors({});
     } else {
-      console.log(validationErrors);
       setErrors({ ...validationErrors });
       return;
     }
@@ -56,16 +57,16 @@ const Signup = () => {
     setMessage("");
 
     try {
-      const res = await userApi.register({
+      const res = await userApi.registerStep1({
         name: formData.name,
         email: formData.email,
         password: formData.password,
         birthDate: formData.birthDate,
       });
-
-      setMessage("Konto utworzone! 🎉");
-      setResponseCode(201);
-      console.log("Utworzony użytkownik:", res.user);
+      sessionStorage.setItem("tempToken", res.tempToken);
+      sessionStorage.setItem("signupName", formData.name);
+      navigate("/signup/details");
+      
     } catch (err) {
       setResponseCode(err.response.status);
       if (err.response?.data?.message) {
@@ -83,7 +84,7 @@ const Signup = () => {
       <div className="signup-container">
         <h1 className="signup-page-title">Zarejestruj się</h1>
         {message && (
-          <SignupInfo message={message} code={responseCode}/>
+          <Info message={message} code={responseCode}/>
         )}
         <form className="signup-form" onSubmit={handleSubmit}>
           <div>
@@ -153,4 +154,4 @@ const Signup = () => {
     </div>
   );
 };
-export default Signup;
+export default SignupStep1;

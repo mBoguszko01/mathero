@@ -11,7 +11,7 @@ export default function Footer() {
       </div>
             <div>
         <p>Autor: Michał Boguszko</p>
-        <p>Promotor: dr Barbara Gocłowska</p>
+        <p>Promotor: dr Barbara Gocławska</p>
       </div>
     </footer>
   );
