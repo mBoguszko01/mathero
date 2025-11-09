@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppRouter } from "./router/AppRouter";
 import Footer from "./components/layout/Footer";
+import GlobalWarning from "./components/GlobalWarning";
 function App() {
   const [ping, setPing] = useState("");
 
@@ -13,7 +14,7 @@ function App() {
 
   return (
     <div className="AppContiner">
-      <header></header>
+      <header>{!ping && <GlobalWarning />}</header>
       <main>
         <AppRouter />
       </main>
