@@ -1,0 +1,63 @@
+.user-desktop-navbar-wrapper {
+  width: 100%;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: row;
+    justify-content: center;
+}
+.user-desktop-navbar-container {
+  height: 3.5rem;
+  width: 1024px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.user-desktop-navbar-wrapper a {
+  text-decoration: none;
+  font-weight: bold;
+  color: #0098ed;
+}
+.user-desktop-navbar-btn {
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  /* border: 2px solid #0098ed; */
+  border: none;
+  background-color: #fff;
+  border-radius: 10px;
+  justify-content: center;
+  width: 9.375rem;
+}
+.user-desktop-navbar-btn:focus {
+  outline: #0066a1 auto 2px;
+}
+.user-desktop-navbar-btn:hover {
+  cursor: pointer;
+  background-color: #e6f4ff;
+}
+.user-desktop-navbar-wrapper .user-desktop-navbar-btn-active {
+  border: 2px solid #0098ed;
+  background-color: #e6f4ff;
+}
+.user-desktop-navbar-wrapper img {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+.user-desktop-navbar-wrapper .user-desktop-navbar-profile-pic {
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+.user-desktop-navbar-wrapper {
+}
+.user-desktop-navbar-coins-streaks-container{
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    font-weight: bold;
+}

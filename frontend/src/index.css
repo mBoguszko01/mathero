@@ -29,5 +29,9 @@ body {
 .AppContiner main{
   width: 100%;
 }
-
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 

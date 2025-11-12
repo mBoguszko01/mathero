@@ -40,7 +40,7 @@ const Signin = () => {
 
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
-      navigate("/dashboard");
+      navigate("/app/home");
 
     }catch (error) {
       console.error("Błąd podczas logowania:", error);
