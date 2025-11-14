@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 const DesktopNavbar = () => {
   const location = useLocation().pathname;
-  console.log(location);
   return (
     <nav className="user-desktop-navbar-wrapper">
       <div className="user-desktop-navbar-container">

@@ -11,6 +11,10 @@ import DailyGoal from "../pages/DailyGoal";
 import Shop from "../pages/Shop";
 import Profile from "../pages/Profile";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
+import Badges from "../pages/Badges.jsx";
+import Ranking from "../pages/Ranking.jsx";
+import Statistics from "../pages/Statistics.jsx";
+import LessonsTopics from "../pages/LessonsTopics.jsx";
 
 export const AppRouter = () => {
   return (
@@ -33,7 +37,11 @@ export const AppRouter = () => {
           <Route path="/app/missions" element={<Missions />} />
           <Route path="/app/daily-goal" element={<DailyGoal />} />
           <Route path="/app/shop" element={<Shop />} />
+          <Route path="/app/lessons-topics" element={<LessonsTopics />} />
+          <Route path="/app/statistics" element={<Statistics />} />
           <Route path="/app/profile" element={<Profile />} />
+          <Route path="/app/ranking" element={<Ranking />} />
+          <Route path="/app/badges" element={<Badges />} />
         </Route>
       </Routes>
     </BrowserRouter>

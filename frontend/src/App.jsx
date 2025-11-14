@@ -18,7 +18,6 @@ function App() {
       <main>
         <AppRouter />
       </main>
-      <p>{ping ? `Server says: ${ping}` : "Pinging server..."}</p>
       <Footer /> 
     </div>
   );

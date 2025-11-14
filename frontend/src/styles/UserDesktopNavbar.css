@@ -10,7 +10,7 @@
   width: 1024px;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
 }
 .user-desktop-navbar-wrapper a {
   text-decoration: none;
@@ -29,6 +29,7 @@
   border-radius: 10px;
   justify-content: center;
   width: 9.375rem;
+  transition: all 200ms ease-in-out;
 }
 .user-desktop-navbar-btn:focus {
   outline: #0066a1 auto 2px;

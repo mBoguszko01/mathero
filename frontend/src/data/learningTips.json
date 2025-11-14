@@ -1,0 +1,44 @@
+﻿[
+  {
+    "id": 1,
+    "icon": "🔁🧠",
+    "emoji": "✨",
+    "category": "powtarzanie",
+    "text": "Twój mózg kocha powtórki! Krótkie, częste powtarzanie działa lepiej niż długa nauka raz na jakiś czas."
+  },
+  {
+    "id": 2,
+    "icon": "⏳💡",
+    "emoji": "🧘",
+    "category": "przerwy",
+    "text": "Mózg działa najlepiej, gdy robisz krótkie przerwy co 20–30 minut."
+  },
+  {
+    "id": 3,
+    "icon": "⏱️📘",
+    "emoji": "🚀",
+    "category": "motywacja",
+    "text": "Nawet 5 minut nauki to krok do przodu — liczy się systematyczność, nie czas."
+  },
+  {
+    "id": 4,
+    "icon": "🌱📈",
+    "emoji": "🔥",
+    "category": "rozwoj",
+    "text": "Robiąc małe rzeczy codziennie, osiągasz ogromne efekty po kilku tygodniach."
+  },
+  {
+    "id": 5,
+    "icon": "❌➡️✅",
+    "emoji": "🧩",
+    "category": "błędy",
+    "text": "Każdy błąd to podpowiedź, co zrobić lepiej następnym razem."
+  },
+  {
+    "id": 6,
+    "icon": "💧🧠",
+    "emoji": "🌊",
+    "category": "zdrowie",
+    "text": "Woda zwiększa koncentrację — pij kilka łyków co godzinę."
+  }
+]
