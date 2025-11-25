@@ -34,4 +34,7 @@ body {
 *::after {
   box-sizing: border-box;
 }
-
+.app-layout {
+  position: relative;
+  min-height: 100%;
+}

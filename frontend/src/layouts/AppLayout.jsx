@@ -6,13 +6,17 @@ export default function AppLayout() {
   const location = useLocation().pathname;
   return (
     <div className="app-layout">
-      <UserNavbar />
-      <main>
-        {location !== "/app/home" && <Link to="/app/home" className="app-layout-logo">
-          Strona główna
-        </Link>}
-        <Outlet />
-      </main>
+      <div className="mobile-frame">
+        <UserNavbar />
+        <div className="app-layout-content">
+          {location !== "/app/home" && (
+            <Link to="/app/home" className="app-layout-logo">
+              Strona główna
+            </Link>
+          )}
+          <Outlet />
+        </div>
+      </div>
     </div>
   );
 }

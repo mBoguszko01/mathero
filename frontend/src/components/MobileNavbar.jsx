@@ -1,51 +1,67 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 const MobileNavbar = () => {
+  const bottomNavSlots = [
+    {
+      icon: "../house.png",
+      location: "/app/home",
+      marginTopValue: "6px",
+    },
+    {
+      icon: "../daily-missions.png",
+      location: "/app/missions",
+      marginTopValue: "8px",
+    },
+    {
+      icon: "../day-mode.png",
+      location: "/app/daily-goal",
+      marginTopValue: "8px",
+    },
+    { icon: "../store.png", location: "/app/shop", marginTopValue: "11px" },
+    { icon: "../avatar1.png", location: "/app/profile", marginTopValue: "0" },
+  ];
+  const locations = [
+    "/app/statistics",
+    "/app/profile",
+    "/app/ranking",
+    "/app/badges",
+  ];
+
+  const location = useLocation().pathname;
   return (
-    <nav className="user-mobile-navbar-wrapper">
-      <div className="user-mobile-navbar-container">
-        <div className="user-mobile-navbar-upper-section-container">
-          <Link to="/app/profile">
-            <div className="user-mobile-navbar-upper-section">
-              <img src="../avatar1.png" alt="User Icon" />
-            </div>
-          </Link>
-          <h1>Cześć Andrzej! 👋</h1>
-          <div className="user-mobile-navbar-upper-section-stats-container">
-            <div className="user-mobile-navbar-upper-section-stat">
-              <div>5🔥</div>
-            </div>
-            <div className="user-mobile-navbar-upper-section-stat">
-              <div>24🪙</div>
-            </div>
-          </div>
+    <>
+      <nav
+        className="user-mobile-navbar-wrapper-bottom"
+        aria-label="Dolny pasek nawigacji"
+      >
+        <div className="user-mobile-navbar-inner user-mobile-navbar-inner--bottom">
+          {bottomNavSlots.map((el, index) => (
+            <Link
+              to={el.location}
+              key={index}
+              className="user-mobile-lower-navbar-tab-link"
+            >
+              <img
+                src={el.icon}
+                className={
+                  (location === el.location ||
+                  (location === "/app/lessons-topics" &&
+                    el.location === "/app/home") ||
+                  (locations.includes(location) && index === 4)
+                    ? "user-mobile-lower-navbar-tab-element user-mobile-lower-navbar-tab-element-active"
+                    : "user-mobile-lower-navbar-tab-element") +
+                  (index === 4
+                    ? " user-mobile-lower-navbar-tab-element--profile"
+                    : "")
+                }
+                style={{ marginTop: el.marginTopValue }}
+              ></img>
+            </Link>
+          ))}
+          <span>5🔥</span>
+          <span>24🪙</span>
         </div>
-        {/* <Link to="/app/home">Start</Link> */}
-        <div className="user-mobile-navbar-lower-section-container">
-          <div>
-            <Link to="/app/missions">
-              <div className="user-mobile-navbar-lower-section-sm-opt user-mobile-navbar-daily-missions">
-                <img src="../daily-missions.png"></img>
-              </div>
-            </Link>
-          </div>
-          <div className="user-mobile-navbar-lower-section-lg-opt-wrapper">
-            <Link to="/app/daily-goal">
-              <div className="user-mobile-navbar-lower-section-lg-opt">
-                <span>Dzienny cel</span>
-                <progress max="100" value="70"></progress>
-              </div>
-            </Link>
-          </div>
-          <div>
-            <Link to="/app/shop">
-              <div className="user-mobile-navbar-lower-section-sm-opt user-mobile-navbar-store">
-                <img src="../store.png"></img>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 export default MobileNavbar;

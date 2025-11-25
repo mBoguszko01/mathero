@@ -15,10 +15,12 @@ import Badges from "../pages/Badges.jsx";
 import Ranking from "../pages/Ranking.jsx";
 import Statistics from "../pages/Statistics.jsx";
 import LessonsTopics from "../pages/LessonsTopics.jsx";
+import ScrollToTop from "../utils/ScrollToTop.js";
 
 export const AppRouter = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />

@@ -160,3 +160,11 @@
     width: 1024px;
   }
 }
+@media (max-width: 1024px) {
+  .dashboard-container-sidebar{
+    display: none;
+  }
+  .dashboard-container{
+    width: 75%;
+  }
+}

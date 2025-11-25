@@ -25,3 +25,8 @@ footer div{
             font-size: 0.5rem;
     }
 }
+@media (max-width: 1024px) {
+    footer{
+        margin-bottom: 4rem; /*wysokosc footera - wysokosc navbar mobile*/
+    }
+}
