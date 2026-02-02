@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-const MobileNavbar = () => {
+const MobileNavbar = ({streak, money}) => {
   const bottomNavSlots = [
     {
       icon: "../house.png",
@@ -57,8 +57,8 @@ const MobileNavbar = () => {
               ></img>
             </Link>
           ))}
-          <span>5🔥</span>
-          <span>24🪙</span>
+          <span>{streak}🔥</span>
+          <span>{money}🪙</span>
         </div>
       </nav>
     </>

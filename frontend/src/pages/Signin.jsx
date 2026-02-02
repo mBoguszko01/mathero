@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import "../styles/Signin.css";
-import {userApi} from "../api/userApi";
+import { userApi } from "../api/userApi";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { fetchUserData } from "../store/userSlice";
 
 const Signin = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -22,7 +25,7 @@ const Signin = () => {
       setMessage("Proszę wypełnić wszystkie pola.");
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       setMessage("Nieprawidłowy format email.");
-    };
+    }
     try {
       setMessage("");
 
@@ -31,7 +34,7 @@ const Signin = () => {
         password: formData.password,
       });
 
-      if(res.requiresStep2){
+      if (res.requiresStep2) {
         sessionStorage.setItem("signupName", res.name);
         sessionStorage.setItem("tempToken", res.tempToken);
         navigate("/signup/details");
@@ -39,12 +42,15 @@ const Signin = () => {
       }
 
       localStorage.setItem("token", res.token);
-      localStorage.setItem("user", JSON.stringify(res.user));
+      await dispatch(fetchUserData(res.token));
+      const streakRes = await userApi.checkStreak(res.token);
+      console.log("check-streak:", streakRes);
       navigate("/app/home");
-
-    }catch (error) {
+    } catch (error) {
       console.error("Błąd podczas logowania:", error);
-      setMessage(error.response.data.message || "Wystąpił błąd podczas logowania.");
+      setMessage(
+        error.response.data.message || "Wystąpił błąd podczas logowania.",
+      );
     }
   };
   return (
@@ -61,12 +67,19 @@ const Signin = () => {
             <label>Hasło</label>
             <input type="password" name="password" onChange={handleChange} />
           </div>
-          <Link className="sign-in-reset-password" onClick={()=>{alert("Funkcjonalność niezaimplementowana")}}>Zresetuj hasło</Link>
+          <Link
+            className="sign-in-reset-password"
+            onClick={() => {
+              alert("Funkcjonalność niezaimplementowana");
+            }}
+          >
+            Zresetuj hasło
+          </Link>
           <button type="submit" className="signin-btn signin-main-btn">
             Zaloguj się
           </button>
         </form>
-        <div style={{display:"flex", flexDirection:"column"}}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           <Link to="/">
             <button className="signin-btn signin-second-btn">Wstecz</button>
           </Link>

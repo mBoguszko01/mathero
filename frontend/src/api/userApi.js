@@ -16,5 +16,19 @@ export const userApi = {
   async login(data) {
     const res = await axios.post(`${API_URL}/api/auth/login`, data);
     return res.data;
-  }
+  },
+   async getProfile(token) {
+    const res = await axios.get(`${API_URL}/api/users/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  },
+  async checkStreak(token) {
+    const { data } = await axios.post(
+      `${API_URL}/api/users/check-streak`,
+      {}, // body puste
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return data;
+  },
 };

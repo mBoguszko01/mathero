@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { AppRouter } from "./router/AppRouter";
 import Footer from "./components/layout/Footer";
 import GlobalWarning from "./components/GlobalWarning";
+
 function App() {
   const [ping, setPing] = useState("");
+
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/ping`)
@@ -18,7 +20,7 @@ function App() {
       <main>
         <AppRouter />
       </main>
-      <Footer /> 
+      <Footer />
     </div>
   );
 }

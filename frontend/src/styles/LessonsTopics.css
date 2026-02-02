@@ -1,0 +1,28 @@
+.lessons-topics-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.lessons-topics-wrapper-element {
+  width: 80%;
+  height: 8rem;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+  transition: all 200ms ease-in-out;
+}
+.lessons-topics-wrapper-element:hover {
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  transform: translateY(-3px);
+  cursor: pointer;
+}

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-const DesktopNavbar = () => {
+const DesktopNavbar = ({streak, money}) => {
   const location = useLocation().pathname;
   return (
     <nav className="user-desktop-navbar-wrapper">
@@ -49,8 +49,8 @@ const DesktopNavbar = () => {
           Sklep
         </Link>
         <div className="user-desktop-navbar-coins-streaks-container">
-          <div>5🔥</div>
-          <div>24🪙</div>
+          <div>{streak}🔥</div>
+          <div>{money}🪙</div>
         </div>
 
         <Link to="/app/profile" tabIndex={-1}>
