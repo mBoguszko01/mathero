@@ -24,17 +24,18 @@ export default function badgeRoutes(pool) {
         if (usersBadges.rows.some((b) => b.badge_id === badge.id)) {
           return { ...badge, isUnlocked: true };
         }
-        return {...badge, isUnlocked: false};
+        return { ...badge, isUnlocked: false };
       });
+      const badgesMap = markIfUnlocked.reduce((acc, el) => {
+        const key = el.badge_key;
+        (acc[key] ||= []).push(el);
+        return acc;
+      }, {});
 
       return res.json({
         userId,
-        allBadges: allBadges.rows,
-        usersBadges: usersBadges.rows,
-        markIfUnlocked: markIfUnlocked
+        badgesMap,
       });
-
-      //zmapować które z allbadges są zdobyte przez usera
     } catch (error) {
       res.status(500).json({ message: "Błąd serwera" });
     }
