@@ -1,10 +1,171 @@
 import express from "express";
 import { getAllUsers } from "../controllers/usersController.js";
+import { verifyToken } from "../middleware/verifyToken.js";
+import resetStreak from "../utils/resetStreak.js";
 
 export default function userRoutes(pool) {
   const router = express.Router();
 
   router.get("/", (req, res) => getAllUsers(req, res, pool));
+  router.get("/me", verifyToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const userResult = await pool.query(
+        `SELECT id, name, username, email, level, money, streak_days, streak_frozen, avatar, exp, highest_streak
+       FROM users WHERE id = $1`,
+        [userId],
+      );
+      if (userResult.rowCount === 0) {
+        return res.status(404).json({ message: "Użytkownik nie znaleziony" });
+      }
+      const user = userResult.rows[0];
+
+      const todayResult = await pool.query(
+        `SELECT tasks_solved, correct_answers
+       FROM user_activity_log
+       WHERE user_id = $1 AND date = CURRENT_DATE`,
+        [userId],
+      );
+      const todayRow = todayResult.rows[0];
+      const todayTasks = todayRow?.tasks_solved || 0;
+      const todayCorrect = todayRow?.correct_answers || 0;
+
+      const bestResult = await pool.query(
+        `SELECT MAX(tasks_solved) AS best_daily_tasks
+       FROM user_activity_log
+       WHERE user_id = $1`,
+        [userId],
+      );
+      const bestDailyTasks = bestResult.rows[0]?.best_daily_tasks || 0;
+      //id, name, username, email, level, money, streak_days, streak_frozen, avatar, exp, highest_streak
+      res.json({
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        level: user.level,
+        exp: user.exp,
+        money: user.money,
+        streak_days: user.streak_days,
+        highest_streak: user.highest_streak,
+        birth_date: user.birth_date,
+        streak_frozen: user.streak_frozen,
+
+        today_tasks_solved: todayTasks,
+        today_correct_answers: todayCorrect,
+        best_daily_tasks_solved: bestDailyTasks,
+      });
+    } catch (error) {
+      console.error("❌ Błąd przy pobieraniu danych użytkownika:", error);
+      res.status(500).json({ message: "Błąd serwera" });
+    }
+  });
+
+  router.post("/check-streak", verifyToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      // 1) Pobierz ostatnią aktywność użytkownika
+      const activityResult = await pool.query(
+        `SELECT date
+       FROM user_activity_log
+       WHERE user_id = $1
+       ORDER BY date DESC
+       LIMIT 1`,
+        [userId],
+      );
+
+      // Jeśli user nie ma jeszcze żadnej aktywności -> nic nie resetujemy
+      if (activityResult.rows.length === 0) {
+        return res.json({ didReset: false, data: null });
+      }
+
+      const lastSolvedDate = new Date(activityResult.rows[0].date);
+
+      // Normalizacja do "początku dnia" (żeby liczyć pełne dni)
+      const normalize = (d) =>
+        new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+      const today = normalize(new Date());
+      const fromDb = normalize(lastSolvedDate);
+
+      // Jeśli data z DB jest niepoprawna
+      if (Number.isNaN(fromDb.getTime())) {
+        return res
+          .status(500)
+          .json({ message: "Nieprawidłowa data w user_activity_log" });
+      }
+
+      const diffInDays = Math.floor((today - fromDb) / (1000 * 60 * 60 * 24));
+
+      // Jeśli dzisiaj (0) albo wczoraj (1) -> nic nie resetujemy
+      if (diffInDays <= 1) {
+        return res.json({ didReset: false, data: null });
+      }
+
+      // 2) Pobierz dane streakowe usera
+      const userDataResult = await pool.query(
+        `SELECT streak_frozen, streak_days, highest_streak
+       FROM users
+       WHERE id = $1`,
+        [userId],
+      );
+
+      if (userDataResult.rows.length === 0) {
+        return res.status(404).json({ message: "Nie znaleziono użytkownika" });
+      }
+
+      const { streak_frozen, streak_days, highest_streak } =
+        userDataResult.rows[0];
+
+      // 3) Jeśli przerwa 2-3 dni i jest freeze -> nic nie resetujemy
+      if (diffInDays > 1 && diffInDays <= 3) {
+        if (streak_frozen === true) {
+          return res.json({ didReset: false, data: null });
+        }
+
+        // Brak freeza -> reset
+        await resetStreak(userId, streak_days, highest_streak, pool);
+
+        // Dociągnij aktualne wartości po resecie (żeby nie zwracać "user is not defined")
+        const afterReset = await pool.query(
+          `SELECT streak_days, highest_streak
+         FROM users
+         WHERE id = $1`,
+          [userId],
+        );
+
+        return res.json({
+          didReset: true,
+          data: afterReset.rows[0] || null,
+        });
+      }
+
+      // 4) Jeśli przerwa > 3 dni -> reset zawsze
+      if (diffInDays > 3) {
+        await resetStreak(userId, streak_days, highest_streak, pool);
+
+        const afterReset = await pool.query(
+          `SELECT streak_days, highest_streak
+         FROM users
+         WHERE id = $1`,
+          [userId],
+        );
+
+        return res.json({
+          didReset: true,
+          data: afterReset.rows[0] || null,
+        });
+      }
+
+      // fallback (teoretycznie nieosiągalny, ale bezpieczny)
+      return res.json({ didReset: false, data: null });
+    } catch (err) {
+      console.error("check-streak error:", err);
+      return res.status(500).json({ message: "Błąd serwera" });
+    }
+  });
 
   return router;
 }
