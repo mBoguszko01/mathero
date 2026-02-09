@@ -24,9 +24,9 @@ app.get("/api/ping", (req, res) => {
 
 // Główne trasy API
 app.use("/api/users", userRoutes(pool));
-app.use("/api/auth", authRoutes); 
-app.use("/api/categories", categoryRoutes);
-app.use("/api/tasks", tasksRoutes);
+app.use("/api/auth", authRoutes(pool)); 
+app.use("/api/categories", categoryRoutes(pool));
+app.use("/api/tasks", tasksRoutes(pool));
 app.use("/api/badges", badgeRoutes(pool));
 
 // Start serwera
