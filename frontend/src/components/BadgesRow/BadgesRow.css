@@ -1,0 +1,15 @@
+.badges-row{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    justify-items: center;
+    gap: 1rem;
+}
+.badge-row-title{
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+@media (min-width: 768px) {
+    .badges-row{
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+}

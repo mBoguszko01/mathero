@@ -1,16 +1,5 @@
 .badges-container{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    justify-items: center;
-    gap: 1rem;
-}
-@media (min-width: 768px) {
-    .badges-container{
-        grid-template-columns: 1fr 1fr 1fr;
-    }
-}
-@media (min-width: 1024px) {
-    .badges-container{
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-    }
+   display: flex;
+   flex-direction: column;
+   gap: 1rem;
 }

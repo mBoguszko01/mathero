@@ -1,4 +1,4 @@
-import Badge from "../components/Badge/Badge.jsx";
+import BadgesRow from "../components/BadgesRow/BadgesRow";
 import { useEffect, useState, useReducer, act } from "react";
 import "../styles/Badges.css";
 
@@ -12,17 +12,6 @@ const Badges = () => {
     badges: null,
   });
 
-  const badgeData = {
-    id: 1,
-    name: "Mistrz matematyki",
-    description: "Rozwiązuj zadania każdego rodzaju",
-    icon_url: "../avatar1.png",
-    requirement_type: "rozwiązanych zadań",
-    requirement_value: "100",
-    value: "53",
-    category_id: "5",
-    rarity: "rare",
-  };
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
@@ -41,30 +30,37 @@ const Badges = () => {
           return r.json();
         })
         .then((d) => {
-          dispatch({ type: "FETCH_SUCCESS", payload: {data: d}});
+          dispatch({ type: "FETCH_SUCCESS", payload: { data: d } });
         })
-        .catch((e) => {
-
-        });
+        .catch((e) => {});
       return res;
     }
-    dispatch({ type: "FETCH_STARTED"});
+    dispatch({ type: "FETCH_STARTED" });
     fetchBadges();
 
     return () => {
       controller.abort();
     };
   }, []);
-  useEffect(()=>{
-    console.log(badges);
-  }, [badges])
+  useEffect(() => {
+    console.log(badges.badges?.badgesMap);
+  }, [badges]);
+
   return (
     <div className="badges-container">
-      <Badge badgeData={badgeData} />
-      <Badge badgeData={badgeData} />
-      <Badge badgeData={badgeData} />
-      <Badge badgeData={badgeData} />
-      <Badge badgeData={badgeData} />
+      {badges.status === "loading" && <p>Pobieranie odznak...</p>}
+      {badges.status === "success" &&
+        Object.entries(badges.badges?.badgesMap ?? {}).map(
+          ([key, rowBadges]) => (
+            <BadgesRow key={key} title={key} badges={rowBadges} />
+          ),
+        )}
+      {badges.status === "error" && (
+        <p>
+          Coś poszło nie tak z pobieraniem odznak. Skontaktuj się z
+          administratorem
+        </p>
+      )}
     </div>
   );
 };
@@ -76,10 +72,9 @@ const reducer = (state, action) => {
       return { status: "loading", error: null, badges: null };
     }
     case "FETCH_SUCCESS": {
-
       const data = action.payload.data;
 
-      return { status: "success", error: null,  badges: data};
+      return { status: "success", error: null, badges: data };
     }
     case "FETCH_ERROR": {
       return { status: "error", error: action.payload.error, badges: null };
