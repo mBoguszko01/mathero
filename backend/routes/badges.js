@@ -3,7 +3,7 @@
 //potem pobieram aktualny progress badgy -- user_badge_progress
 //niech rarity oznacza 'poziom' odznaki - czyli za level 5 -- wood, level 10 -- silver, level 25 -- gold, level 50 -- diamond
 import express from "express";
-import { verifyToken } from "../middleware/verifyToken.js"
+import { verifyToken } from "../middleware/verifyToken.js";
 
 export default function badgeRoutes(pool) {
   const router = express.Router();
@@ -20,10 +20,18 @@ export default function badgeRoutes(pool) {
         [userId],
       );
 
+      const markIfUnlocked = allBadges.rows.map((badge) => {
+        if (usersBadges.rows.some((b) => b.badge_id === badge.id)) {
+          return { ...badge, isUnlocked: true };
+        }
+        return {...badge, isUnlocked: false};
+      });
+
       return res.json({
         userId,
         allBadges: allBadges.rows,
         usersBadges: usersBadges.rows,
+        markIfUnlocked: markIfUnlocked
       });
 
       //zmapować które z allbadges są zdobyte przez usera
