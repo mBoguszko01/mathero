@@ -198,12 +198,17 @@ export default function tasksRoutes() {
       exp += earnedExp;
       money += earnedCoins;
 
+      //aktualizuj badge z kasą
+      updateMoneyBadges(userId, earnedCoins);
       // Prosta logika levelowania: exp_to_next = level * 100
       let leveledUp = false;
       while (exp >= level * 100) {
         exp -= level * 100;
         level += 1;
         leveledUp = true;
+      }
+      if (leveledUp) {
+        // aktualizuj badge z levelami
       }
 
       // Streak +1 jeśli dzisiaj jeszcze nie zwiększaliśmy
@@ -217,9 +222,6 @@ export default function tasksRoutes() {
       );
 
       const lastSolvedDate = new Date(activityResult.rows[0].date);
-
-      const normalize = (d) =>
-        new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
       const today = normalize(new Date());
       const fromDb = normalize(lastSolvedDate);
@@ -236,6 +238,10 @@ export default function tasksRoutes() {
         streak_days += 1;
         didUpdateStreak = true;
       }
+      if (didUpdateStreak) {
+        // aktualizuj badge ze streakiem
+      }
+      //aktualizuj badge z tasks
 
       if (streak_days > highest_streak) {
         highest_streak = streak_days;
@@ -284,6 +290,105 @@ export default function tasksRoutes() {
       client.release();
     }
   });
-
+  router.post("/testMoneyBadges", verifyToken, async (req, res, next) => {
+    try {
+      await updateMoneyBadges(25, 6);
+      res.sendStatus(200);
+    } catch (e) {
+      next(e);
+    }
+  });
   return router;
+}
+const normalize = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+async function updateMoneyBadges(userId, addingValue) {
+  // pobierz aktualnie zdobywaną odznakę money
+  const { rows } = await pool.query(
+    `SELECT ub.id, ub.badge_id, ub.progress_value, ub.start_date, b.requirement_value, b.rarity
+    FROM user_badge_progress ub
+    JOIN badges b ON b.id = ub.badge_id
+    WHERE ub.user_id = $1
+    AND b.badge_key = 'money' AND ub.completed = FALSE;`,
+    [userId],
+  );
+  const currentlyAcqouringMoneyBadge = rows[0];
+  if (!currentlyAcqouringMoneyBadge) return; // DODAĆ LOGIKĘ PRZYPISUJĄCĄ W USER_BADGE_PROGRESS SAME BRONZY NA START!!!
+
+  const today = normalize(new Date());
+  const newValue = currentlyAcqouringMoneyBadge.progress_value + addingValue;
+  if (newValue >= currentlyAcqouringMoneyBadge.requirement_value) {
+    // zamknij tego badga ->
+    // 1. ustaw mu progress_value = requrement_value
+    // 2. ustaw mu completed = true
+    // 3. completed_at aktualna data
+    // 4. days_to_complete
+
+    const startDate = normalize(
+      new Date(currentlyAcqouringMoneyBadge.start_date),
+    );
+    const diffInDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+
+    await pool.query(
+      `
+      UPDATE user_badge_progress
+      SET progress_value = $1,
+          last_update = $6,
+          completed = $2,
+          completed_at = $3,
+          days_to_complete = $4
+      WHERE id = $5
+      `,
+      [
+        currentlyAcqouringMoneyBadge.requirement_value,
+        true,
+        today,
+        diffInDays,
+        currentlyAcqouringMoneyBadge.id,
+        today,
+      ],
+    );
+
+    // 5. wystartuj progress następnego badga (jeśli ten nie jest diamondem)
+    if (currentlyAcqouringMoneyBadge.rarity != "diamond") {
+      const nextRarityMap = {
+        wood: "silver",
+        silver: "gold",
+        gold: "diamond",
+      };
+      const nextBadgeId = await pool.query(
+        `SELECT id FROM badges
+          WHERE rarity=$1 AND badge_key='money'`,
+        [nextRarityMap[currentlyAcqouringMoneyBadge.rarity]],
+      );
+      await pool.query(
+        `
+      INSERT INTO user_badge_progress (user_id, badge_id, progress_value, start_date, last_update, completed)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      `,
+        [userId, nextBadgeId.rows[0].id, newValue, today, today, false],
+      );
+    }
+
+    // 6. dodaj badge'a do tabeli user_badges
+    await pool.query(
+      `
+      INSERT INTO user_badges (user_id, badge_id, earned_at, highlighted)
+      VALUES ($1, $2, $3, $4)
+      `,
+      [userId, currentlyAcqouringMoneyBadge.badge_id, today, false],
+    );
+  } else {
+    // aktualizuj tego badga
+    // 1. zwieksz mu progrss_value o addingValue
+    await pool.query(
+      `
+      UPDATE user_badge_progress
+      SET progress_value = $1,
+          last_update = $2
+      WHERE id = $3
+      `,
+      [newValue, today, currentlyAcqouringMoneyBadge.id],
+    );
+  }
 }
