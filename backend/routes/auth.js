@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import pool from "../db/index.js";
 import dotenv from "dotenv";
 import { verifyToken } from "../middleware/verifyToken.js";
+import { startNewBadges } from "../utils/startNewBadges.js";
 
 dotenv.config();
 
@@ -183,6 +184,7 @@ export default function authRoutes() {
       }
 
       const token = makeFullToken(user);
+      startNewBadges(user.id, pool); // jesli uzytkownik loguje sie poraz pierwszy lub od ostatniego logowania dodano nowe odznaki, startuje progress tej odznaki na poziomie wood
 
       res.json({
         message: "Zalogowano pomyślnie",

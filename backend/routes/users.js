@@ -158,6 +158,7 @@ export default function userRoutes(pool) {
           data: afterReset.rows[0] || null,
         });
       }
+      
 
       // fallback (teoretycznie nieosiągalny, ale bezpieczny)
       return res.json({ didReset: false, data: null });
