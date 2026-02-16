@@ -1,12 +1,12 @@
 import "./Badge.css";
-const Badge = ({ badgeData }) => {
+const Badge = ({ badgeData, showDetailsHandler }) => {
   const {
     id,
     name,
     isUnlocked
   } = badgeData;
   return (
-    <div className="badge-container" key={id}>
+    <div className="badge-container" key={id} onClick={()=>{showDetailsHandler(badgeData)}}>
       <img
         src={"../avatar1.png"}
         alt={`badge ${name} icon`}

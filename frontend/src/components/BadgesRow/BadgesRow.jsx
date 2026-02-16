@@ -6,13 +6,18 @@ const titleMap = {
   tasks: "Niepokonany rozwiązywacz zadań",
 };
 
-const BadgesRow = ({ badges, title }) => {
+const BadgesRow = ({ badges, title, showDetailsHandler }) => {
+  console.log(badges);
   return (
     <>
-    <p className="badge-row-title">{titleMap[title]}</p>
+      <p className="badge-row-title">{titleMap[title]}</p>
       <div className="badges-row">
-        {badges.map((el) => (
-          <Badge badgeData={el} />
+        {badges.map((el, index) => (
+          <Badge
+            badgeData={el}
+            key={index}
+            showDetailsHandler={showDetailsHandler}
+          />
         ))}
       </div>
     </>

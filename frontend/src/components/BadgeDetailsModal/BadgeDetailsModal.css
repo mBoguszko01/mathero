@@ -1,0 +1,96 @@
+.modal-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #0000005f;
+  width: 100%;
+  height: 100vh;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-container {
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+}
+.modal-btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+.modal-btn-container button {
+  border: none;
+  background-color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+.modal-info-container img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.modal-info-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.modal-badge-name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.modal-badge-description {
+}
+.modal-badge-progress-container {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+.modal-badge-progress {
+  height: 0.75rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.modal-badge-progress::-webkit-progress-bar {
+  background-color: #ddd; /* kolor tła */
+  border-radius: 10px;
+}
+
+/* WYPEŁNIENIE */
+.modal-badge-progress::-webkit-progress-value {
+  background-color: #0098ed; /* KOLOR POSTĘPU */
+  border-radius: 10px;
+}
+
+.modal-badge-progress-text {
+  font-size: 0.9rem;
+  color: #747474;
+}
+.modal-badge-cant-display-details-info {
+  font-size: 0.9rem;
+  color: #747474;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+@media (min-width: 769px) {
+  .modal-container {
+    width: 468px;
+    height: 400px;
+    border-radius: 1rem;
+  }
+}

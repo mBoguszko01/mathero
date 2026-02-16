@@ -1,16 +1,16 @@
 import BadgesRow from "../components/BadgesRow/BadgesRow";
 import { useEffect, useState, useReducer, act } from "react";
 import "../styles/Badges.css";
+import BadgeDetailsModal from "../components/BadgeDetailsModal/BadgeDetailsModal";
 
-//badge structure: id, name, description, icon_url, requirement_type, requirement_value, category_id, rarity
-
-//W TYM WIDOKU POKAZUJĘ INFORMACJĘ CZY ODBLOKWANE CZY NIE.
 const Badges = () => {
   const [badges, dispatch] = useReducer(reducer, {
     status: "idle",
     error: null,
     badges: null,
   });
+  const [showDetails, setShowDetails] = useState(false);
+  const [badgeDetails, setBadgeDetails] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,26 +42,51 @@ const Badges = () => {
       controller.abort();
     };
   }, []);
-  useEffect(() => {
-    console.log(badges.badges?.badgesMap);
-  }, [badges]);
+
+  function openModal(badge) {
+    setShowDetails(true);
+    setBadgeDetails(badge);
+    window.scrollTo(0, 0);
+    const bodyElement = document.querySelector("body");
+    bodyElement.classList.add("modal-open");
+  }
+  function closeModal() {
+    const bodyElement = document.querySelector("body");
+    bodyElement.classList.remove("modal-open");
+    setShowDetails(false);
+  }
 
   return (
-    <div className="badges-container">
-      {badges.status === "loading" && <p>Pobieranie odznak...</p>}
-      {badges.status === "success" &&
-        Object.entries(badges.badges?.badgesMap ?? {}).map(
-          ([key, rowBadges]) => (
-            <BadgesRow key={key} title={key} badges={rowBadges} />
-          ),
+    <>
+      <div className="badges-container">
+        {badges.status === "loading" && <p>Pobieranie odznak...</p>}
+        {badges.status === "success" &&
+          Object.entries(badges.badges?.badgesMap ?? {}).map(
+            ([key, rowBadges]) => (
+              <BadgesRow
+                key={key}
+                title={key}
+                badges={rowBadges.slice().sort((a, b) => a.id - b.id)}
+                showDetailsHandler={(badge) => {
+                  openModal(badge);
+                }}
+              />
+            ),
+          )}
+        {badges.status === "error" && (
+          <p>
+            Coś poszło nie tak z pobieraniem odznak. Skontaktuj się z
+            administratorem
+          </p>
         )}
-      {badges.status === "error" && (
-        <p>
-          Coś poszło nie tak z pobieraniem odznak. Skontaktuj się z
-          administratorem
-        </p>
+      </div>
+      {showDetails && (
+        <BadgeDetailsModal
+          closeModalHandler={closeModal}
+          badge={badgeDetails}
+        />
       )}
-    </div>
+    </>
   );
 };
 export default Badges;
@@ -73,6 +98,7 @@ const reducer = (state, action) => {
     }
     case "FETCH_SUCCESS": {
       const data = action.payload.data;
+      console.log(data);
 
       return { status: "success", error: null, badges: data };
     }
