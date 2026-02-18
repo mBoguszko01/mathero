@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import TasksPopUpStats from "../components/TasksPopUpStats";
 import "../styles/Tasks.css";
 import { useDispatch } from "react-redux";
-import { updateStreak } from "../store/userSlice";
+import { updateStreak, updateInfoAfterSession } from "../store/userSlice";
 
 const initialStats = { exp: 0, coins: 0, correctAnswers: 0 };
 
@@ -80,9 +80,12 @@ const Tasks = () => {
         if (countAnswered < 4) {
           setCountAnswered((prev) => prev + 1);
         } else {
-          finalizeSession();
+          finalizeSession([
+            ...sessionResults,
+            { task_id: currentTask.id, correct: isCorrect },
+          ]);
         }
-      }, 1500);
+      }, 100);
     } else {
       setWrongAnswer(ans);
       setShowCorrect(true);
@@ -95,13 +98,16 @@ const Tasks = () => {
         if (countAnswered < 4) {
           setCountAnswered((prev) => prev + 1);
         } else {
-          finalizeSession();
+          finalizeSession([
+            ...sessionResults,
+            { task_id: currentTask.id, correct: isCorrect },
+          ]);
         }
-      }, 2000);
+      }, 100);
     }
   };
 
-  const finalizeSession = async () => {
+  const finalizeSession = async (results) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -114,7 +120,7 @@ const Tasks = () => {
         class_level: Number(classLevel),
         category_id: Number(topic),
         subcategory_id: Number(subtopic),
-        results: sessionResults,
+        results: results ?? sessionResults,
       };
 
       const res = await fetch(
@@ -145,6 +151,12 @@ const Tasks = () => {
           coins: data?.earned?.coins || 0,
           correctAnswers: data?.earned?.correctAnswers || 0,
         });
+        dispatch(
+          updateInfoAfterSession({
+            exp: data?.earned?.exp || 0,
+            coins: data?.earned?.coins || 0,
+          }),
+        );
       }
     } catch (err) {
       console.error("Błąd połączenia z backendem:", err);

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import tips from '../data/learningTips.json' with { type: 'json' };
+import tips from "../data/learningTips.json" with { type: "json" };
 import "../styles/Dashboard.css";
 const Dashboard = () => {
   const randomTip = tips[Math.floor(Math.random() * tips.length)];
@@ -8,7 +8,7 @@ const Dashboard = () => {
   const generateProgressBars = () => {
     const bars = [];
     const totalBars = 4;
-    const expPerBar = user?.level * 100 / 4;
+    const expPerBar = (user?.level * 100) / 4;
     let userExp = user?.exp;
     for (let i = 0; i < totalBars; i++) {
       const barValue = Math.min(userExp, expPerBar);
@@ -16,8 +16,8 @@ const Dashboard = () => {
       userExp -= barValue;
     }
     return bars;
-  }
-  
+  };
+
   return (
     <div className="dashboard-wrapper">
       <div className="dashboard-container">
@@ -48,38 +48,72 @@ const Dashboard = () => {
         </div>
         <div className="dashboard-container-sidebar">
           <div className="dashboard-container-sidebar-element dashboard-container-sidebar-exp">
-            <span className="dashboard-container-sidebar-exp-lvl">Lv. {user?.level}</span>
+            <span className="dashboard-container-sidebar-exp-lvl">
+              Lv. {user?.level}
+            </span>
             <div className="dashboard-container-sidebar-exp-details">
               <div className="dashboard-container-sidebar-exp-progressbar-container">
-                {generateProgressBars()}  
+                {generateProgressBars()}
               </div>
-              <span>{user?.exp}/{user?.level * 100} XP</span>
+              <span>
+                {user?.exp}/{user?.level * 100} XP
+              </span>
             </div>
           </div>
           <div className="dashboard-container-sidebar-element dashboard-container-sidebar-learning-tip">
-            <span className="dashboard-container-sidebar-learning-tip-icon">{randomTip.icon}</span>
+            <span className="dashboard-container-sidebar-learning-tip-icon">
+              {randomTip.icon}
+            </span>
             <span>{randomTip.text}</span>
           </div>
-          {/* <div className="dashboard-container-sidebar-element dashboard-container-sidebar-quick-menu">
-            <span>Ostatnio rozwiązywałeś zadania z działu</span>
-            <span>Dodawanie poziom: łatwy - klasa 3</span>
-            <button>Przejdź do zadań</button>
-          </div> */}
+
           <div className="dashboard-container-sidebar-element dashboard-container-sidebar-stats">
             <div>
-              <span>Dziś rozwiązałes już {user?.today_tasks_solved} zadań!</span>
-              <span>Twój rekord wynosi {user?.best_daily_tasks_solved} zadań jednego dnia.</span>
+              <span>
+                Dziś rozwiązałes już {user?.today_tasks_solved} zadań!
+              </span>
+              <span>
+                Twój rekord wynosi {user?.best_daily_tasks_solved} zadań jednego
+                dnia.
+              </span>
             </div>
             <hr />
             <div>
-              {user?.streak_days < user?.highest_streak && <> <span className="dashboard-container-sidebar-stats-icon">{user?.streak_days}🔥</span>
-              <span>Twoja aktualna seria</span>
-              <span className="dashboard-container-sidebar-stats-icon dashboard-container-sidebar-stats-icon-grey">{user?.highest_streak}🔥</span>
-              <span>Twoja największa seria</span> </>}
-              {(user?.streak_days === user?.highest_streak && user?.streak_days != 0) && <> <span className="dashboard-container-sidebar-stats-icon">{user?.streak_days}🔥</span> <span>To Twoja rekordowa seria!</span></>}
-              {(user?.streak_days === 0) && <> <span className="dashboard-container-sidebar-stats-icon" style={{filter: "grayscale(1)"}}>{user?.streak_days}🔥</span> <span>Rozwiązuj zadania codziennie i zwiększaj swoją serię!</span></>}
+              {(user?.streak_days < user?.highest_streak) && user?.streak_days !== 0  && (
+                <>
+                  <span className="dashboard-container-sidebar-stats-icon">
+                    {user?.streak_days}🔥
+                  </span>
+                  <span>Twoja aktualna seria</span>
+                  <span className="dashboard-container-sidebar-stats-icon dashboard-container-sidebar-stats-icon-grey">
+                    {user?.highest_streak}🔥
+                  </span>
+                  <span>Twoja największa seria</span>
+                </>
+              )}
+              {user?.streak_days === user?.highest_streak &&
+                user?.streak_days != 0 && (
+                  <>
+                    <span className="dashboard-container-sidebar-stats-icon">
+                      {user?.streak_days}🔥
+                    </span>
+                    <span>To Twoja rekordowa seria!</span>
+                  </>
+                )}
+              {user?.streak_days === 0 && (
+                <>
+                  <span
+                    className="dashboard-container-sidebar-stats-icon"
+                    style={{ filter: "grayscale(1)" }}
+                  >
+                    {user?.streak_days}🔥
+                  </span>
+                  <span>
+                    Rozwiązuj zadania codziennie i zwiększaj swoją serię!
+                  </span>
+                </>
+              )}
             </div>
-            
           </div>
         </div>
       </div>

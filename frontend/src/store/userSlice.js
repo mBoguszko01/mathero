@@ -30,6 +30,14 @@ const userSlice = createSlice({
     },
     updateStreak(state){
       state.data = {...state.data, streak_days: state.data.streak_days+1}
+    },
+    updateInfoAfterSession(state, action){
+
+      console.log(JSON.stringify(state));
+      const best_daily_tasks_solved = state.data.best_daily_tasks_solved < state.data.today_tasks_solved + 5 ? state.data.today_tasks_solved + 5 : state.data.best_daily_tasks_solved
+      state.data = { ...state.data, exp: state.data.exp + action.payload.exp, money: state.data.money + action.payload.coins, today_tasks_solved: state.data.today_tasks_solved + 5, best_daily_tasks_solved};
+      // ROZBIEZNOSC W NAZWACH POL! COINS I MONEY!!!
+      // TODAY_TASKS_SOLVED USTAWIONE NA SZTYWNO +5
     }
   },
   extraReducers: (builder) => {
@@ -51,5 +59,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { logout, updateStreak } = userSlice.actions;
+export const { logout, updateStreak, updateInfoAfterSession } = userSlice.actions;
 export default userSlice.reducer;

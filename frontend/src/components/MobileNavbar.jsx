@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-const MobileNavbar = ({streak, money}) => {
+const MobileNavbar = ({ streak, money }) => {
   const bottomNavSlots = [
     {
       icon: "../house.png",
@@ -19,14 +19,8 @@ const MobileNavbar = ({streak, money}) => {
     { icon: "../store.png", location: "/app/shop", marginTopValue: "11px" },
     { icon: "../avatar1.png", location: "/app/profile", marginTopValue: "0" },
   ];
-  const locations = [
-    "/app/statistics",
-    "/app/profile",
-    "/app/ranking",
-    "/app/badges",
-  ];
 
-  const location = useLocation().pathname;
+  const classNameValue = "user-mobile-lower-navbar-tab-element";
   return (
     <>
       <nav
@@ -43,15 +37,10 @@ const MobileNavbar = ({streak, money}) => {
               <img
                 src={el.icon}
                 className={
-                  (location === el.location ||
-                  (location === "/app/lessons-topics" &&
-                    el.location === "/app/home") ||
-                  (locations.includes(location) && index === 4)
-                    ? "user-mobile-lower-navbar-tab-element user-mobile-lower-navbar-tab-element-active"
-                    : "user-mobile-lower-navbar-tab-element") +
-                  (index === 4
-                    ? " user-mobile-lower-navbar-tab-element--profile"
-                    : "")
+                  index === 4
+                    ? classNameValue +
+                      " user-mobile-lower-navbar-tab-element--profile"
+                    : classNameValue
                 }
                 style={{ marginTop: el.marginTopValue }}
               ></img>
