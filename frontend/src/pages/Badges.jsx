@@ -1,5 +1,5 @@
 import BadgesRow from "../components/BadgesRow/BadgesRow";
-import { useEffect, useState, useReducer, act } from "react";
+import { useEffect, useState, useReducer } from "react";
 import "../styles/Badges.css";
 import BadgeDetailsModal from "../components/BadgeDetailsModal/BadgeDetailsModal";
 

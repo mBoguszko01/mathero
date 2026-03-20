@@ -17,6 +17,7 @@ import Statistics from "../pages/Statistics.jsx";
 import LessonsTopics from "../pages/LessonsTopics.jsx";
 import ScrollToTop from "../utils/ScrollToTop.js";
 import Tasks from "../pages/Tasks.jsx";
+import RankingDetails from "../pages/RankingDetails.jsx";
 
 export const AppRouter = () => {
   return (
@@ -44,6 +45,7 @@ export const AppRouter = () => {
           <Route path="/app/statistics" element={<Statistics />} />
           <Route path="/app/profile" element={<Profile />} />
           <Route path="/app/ranking" element={<Ranking />} />
+          <Route path="/app/ranking-details" element={<RankingDetails />} />
           <Route path="/app/badges" element={<Badges />} />
           <Route path="/app/tasks" element={<Tasks />} />
         </Route>

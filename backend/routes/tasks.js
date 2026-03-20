@@ -302,7 +302,7 @@ async function updateBadges(badgeKey, userId, addingValue) {
     [userId, badgeKey],
   );
   const currentlyAcqouringBadge = rows[0];
-  if (!currentlyAcqouringBadge) return; // DODAĆ LOGIKĘ PRZYPISUJĄCĄ W USER_BADGE_PROGRESS SAME BRONZY NA START!!!
+  if (!currentlyAcqouringBadge) return; //
 
   const today = normalize(new Date());
   const newValue = currentlyAcqouringBadge.progress_value + addingValue;
@@ -345,8 +345,8 @@ async function updateBadges(badgeKey, userId, addingValue) {
       };
       const nextBadgeId = await pool.query(
         `SELECT id FROM badges
-          WHERE rarity=$1 AND badge_key='money'`,
-        [nextRarityMap[currentlyAcqouringBadge.rarity]],
+          WHERE rarity=$1 AND badge_key=$2`,
+        [nextRarityMap[currentlyAcqouringBadge.rarity], badgeKey],
       );
       await pool.query(
         `

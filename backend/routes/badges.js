@@ -14,18 +14,16 @@ export default function badgeRoutes(pool) {
 
       const allBadges = await pool.query(`SELECT * FROM badges`);
       const usersBadges = await pool.query(
-        `SELECT * 
-                FROM user_badges
-                WHERE user_id = $1`,
+        `SELECT * FROM user_badges WHERE user_id = $1`,
         [userId],
       );
       const badgesProgressData = await pool.query(
         `SELECT * FROM user_badge_progress WHERE user_id = $1`,
         [userId],
       );
-      //dopisz do allBadges progress_value, start_date, last_update, completed_at, days_to_complete,avg_daily_gain
+
       const badgeTablesCombined = allBadges.rows.map((badge) => {
-        const b = badgesProgressData.rows.find((b) => b.badge_id === badge.id);
+        const b = badgesProgressData.rows.find((x) => x.badge_id === badge.id);
         return {
           ...badge,
           progress_value: b?.progress_value || 0,
@@ -38,26 +36,45 @@ export default function badgeRoutes(pool) {
       });
 
       const markIfUnlocked = badgeTablesCombined.map((badge) => {
-        if (usersBadges.rows.some((b) => b.badge_id === badge.id)) {
-          return { ...badge, isUnlocked: true };
-        }
-        return { ...badge, isUnlocked: false };
+        const isUnlocked = usersBadges.rows.some(
+          (b) => b.badge_id === badge.id,
+        );
+        return { ...badge, isUnlocked };
       });
 
-      const badgesMap = markIfUnlocked.reduce((acc, el) => {
+      // 1) Grupowanie po badge_key
+      const badgesMapRaw = markIfUnlocked.reduce((acc, el) => {
         const key = el.badge_key;
         (acc[key] ||= []).push(el);
         return acc;
       }, {});
 
+      // 2) displayDetails per grupa
+      const badgesMap = Object.fromEntries(
+        Object.entries(badgesMapRaw).map(([key, rowBadges]) => {
+          const sorted = [...rowBadges].sort(
+            (a, b) => (a.id ?? 0) - (b.id ?? 0),
+          );
 
-      return res.json({
-        userId,
-        badgesMap,
-      });
+          const withDisplayDetails = sorted.map((el, index, arr) => {
+            const prevUnlocked =
+              index > 0 ? !!arr[index - 1].isUnlocked : false;
+
+            const displayDetails =
+              el.rarity === "wood" || el.isUnlocked || prevUnlocked;
+
+            return { ...el, displayDetails };
+          });
+
+          return [key, withDisplayDetails];
+        }),
+      );
+
+      return res.json({ userId, badgesMap });
     } catch (error) {
       res.status(500).json({ message: `Błąd serwera: ${error.message}` });
     }
   });
+
   return router;
 }

@@ -55,7 +55,7 @@ const DesktopNavbar = ({streak, money}) => {
 
         <Link to="/app/profile" tabIndex={-1}>
           <img
-            src="../avatar1.png"
+            src="../avatar15.png"
             className="user-desktop-navbar-profile-pic"
           />
         </Link>

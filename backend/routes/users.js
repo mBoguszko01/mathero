@@ -158,13 +158,66 @@ export default function userRoutes(pool) {
           data: afterReset.rows[0] || null,
         });
       }
-      
 
       // fallback (teoretycznie nieosiągalny, ale bezpieczny)
       return res.json({ didReset: false, data: null });
     } catch (err) {
       console.error("check-streak error:", err);
       return res.status(500).json({ message: "Błąd serwera" });
+    }
+  });
+  router.get("/rankings/top-exp", verifyToken, async (req, res) => {
+    try {
+      const topExpPlayers = await pool.query(`
+          SELECT username, level, exp, avatar FROM users
+          ORDER BY level DESC, exp DESC
+          LIMIT 100
+        `);
+
+      if (topExpPlayers.rows.length === 0) {
+        return res.json({ no_users: "No users found." });
+      }
+      return res.json({
+        data: topExpPlayers.rows,
+      });
+    } catch (e) {
+      console.error(`top-exp error: ${e}`);
+    }
+  });
+  router.get("/rankings/top-earnings", verifyToken, async (req, res) => {
+    try {
+      const topEarningsPlayers = await pool.query(`
+          SELECT username, total_earnings, avatar FROM users
+          ORDER BY total_earnings DESC
+          LIMIT 100
+        `);
+
+      if (topEarningsPlayers.rows.length === 0) {
+        return res.json({ no_users: "No users found." });
+      }
+      return res.json({
+        data: topEarningsPlayers.rows,
+      });
+    } catch (e) {
+      console.error(`top-earnings error: ${e}`);
+    }
+  });
+  router.get("/rankings/highest-streak", verifyToken, async (req, res) => {
+    try {
+      const topHighestStreak = await pool.query(`
+           SELECT username, highest_streak, avatar FROM users
+          ORDER BY highest_streak DESC
+          LIMIT 100
+        `);
+
+      if (topHighestStreak.rows.length === 0) {
+        return res.json({ no_users: "No users found." });
+      }
+      return res.json({
+        data: topHighestStreak.rows,
+      });
+    } catch (e) {
+      console.error(`highest-streak error: ${e}`);
     }
   });
 
