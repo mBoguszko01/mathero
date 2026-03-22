@@ -16,6 +16,9 @@
   cursor: pointer;
   transition: all 200ms ease-in-out;
 }
+.purchased{
+  filter: grayscale(1);
+}
 .shop-item:hover {
   transform: translateY(-3px);
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;

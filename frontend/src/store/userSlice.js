@@ -10,9 +10,8 @@ export const fetchUserData = createAsyncThunk(
     } catch (err) {
       return thunkAPI.rejectWithValue(err.response?.data || "Błąd serwera");
     }
-  }
+  },
 );
-
 
 const userSlice = createSlice({
   name: "user",
@@ -28,16 +27,31 @@ const userSlice = createSlice({
       state.isLoggedIn = false;
       localStorage.removeItem("token");
     },
-    updateStreak(state){
-      state.data = {...state.data, streak_days: state.data.streak_days+1}
+    updateStreak(state) {
+      state.data = { ...state.data, streak_days: state.data.streak_days + 1 };
     },
-    updateInfoAfterSession(state, action){
-
-      console.log(JSON.stringify(state));
-      const best_daily_tasks_solved = state.data.best_daily_tasks_solved < state.data.today_tasks_solved + 5 ? state.data.today_tasks_solved + 5 : state.data.best_daily_tasks_solved
-      state.data = { ...state.data, exp: state.data.exp + action.payload.exp, money: state.data.money + action.payload.coins, today_tasks_solved: state.data.today_tasks_solved + 5, best_daily_tasks_solved};
+    updateInfoAfterSession(state, action) {
+      const best_daily_tasks_solved =
+        state.data.best_daily_tasks_solved < state.data.today_tasks_solved + 5
+          ? state.data.today_tasks_solved + 5
+          : state.data.best_daily_tasks_solved;
+      state.data = {
+        ...state.data,
+        exp: state.data.exp + action.payload.exp,
+        money: state.data.money + action.payload.coins,
+        today_tasks_solved: state.data.today_tasks_solved + 5,
+        best_daily_tasks_solved,
+      };
       // ROZBIEZNOSC W NAZWACH POL! COINS I MONEY!!!
       // TODAY_TASKS_SOLVED USTAWIONE NA SZTYWNO +5
+    },
+    updateInfoAfterPruchase(state,action){
+      state.data = {
+        ...state.data,
+        exp: action.payload.exp,
+        money: action.payload.money,
+        level: action.payload.level
+      };
     }
   },
   extraReducers: (builder) => {
@@ -49,6 +63,7 @@ const userSlice = createSlice({
       .addCase(fetchUserData.fulfilled, (state, action) => {
         state.loading = false;
         state.data = action.payload;
+        console.log(action.payload);
         state.isLoggedIn = true;
       })
       .addCase(fetchUserData.rejected, (state, action) => {
@@ -59,5 +74,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { logout, updateStreak, updateInfoAfterSession } = userSlice.actions;
+export const { logout, updateStreak, updateInfoAfterSession, updateInfoAfterPruchase } =
+  userSlice.actions;
 export default userSlice.reducer;

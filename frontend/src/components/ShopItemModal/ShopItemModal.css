@@ -1,0 +1,40 @@
+.shop-item-modal-container{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+.shop-item-modal-container img{
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    width: 8rem;
+    aspect-ratio: 1;
+}
+.shop-item-modal-btns-container{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+.shop-item-modal-btns-container button{
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    border: none;
+    background-color: #fff;
+    border-radius: 10px;
+    justify-content: center;
+    width: 9.375rem;
+    border: 2px solid;
+    color: #0098ed;
+    cursor: pointer;
+}
+.shop-item-modal-btns-container .shop-item-modal-primary-btn{
+    background-color: #0098ed;
+    color: #fff;
+    height: 2.625rem;
+    width: 9.5rem;;
+}

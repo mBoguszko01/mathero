@@ -1,13 +1,13 @@
-import Badge from "../Badge/Badge";
-import "./BadgesRow.css";
+import Badge from '../Badge/Badge';
+import './BadgesRow.css';
 
 const titleMap = {
-  level: "Łowca punktów doświadczenia",
-  tasks: "Niepokonany rozwiązywacz zadań",
+  level: 'Łowca punktów doświadczenia',
+  tasks: 'Mistrz Zadań',
+  money: 'Bogacz'
 };
 
 const BadgesRow = ({ badges, title, showDetailsHandler }) => {
-  console.log(badges);
   return (
     <>
       <p className="badge-row-title">{titleMap[title]}</p>

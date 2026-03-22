@@ -1,12 +1,11 @@
 import "./BadgeDetailsModal.css";
 function BadgeDetailsModal({ closeModalHandler, badge }) {
-
   const nameMap = {
-    'silver': 'drewnianą',
-    'gold': 'srebrną',
-    'diamond': 'złotą'
-  }
-  console.log(badge)
+    silver: "drewnianą",
+    gold: "srebrną",
+    diamond: "złotą",
+  };
+
   return (
     <div className="modal-background">
       <div className="modal-container">
@@ -26,13 +25,17 @@ function BadgeDetailsModal({ closeModalHandler, badge }) {
                 className="modal-badge-progress"
               />
               <p className="modal-badge-progress-text">
-                {badge.progress_value}/{badge.requirement_value} ({(badge.progress_value/badge.requirement_value)*100}%)
+                {badge.progress_value}/{badge.requirement_value} (
+                {(badge.progress_value / badge.requirement_value) * 100}%)
               </p>
             </div>
           )}
-          {badge.displayDetails === false && <p className="modal-badge-cant-display-details-info">
-            Odblokuj <b>{nameMap[badge.rarity]}</b> odznakę tej kategorii aby obejrzeć szczegóły.
-          </p>}
+          {badge.displayDetails === false && (
+            <p className="modal-badge-cant-display-details-info">
+              Odblokuj <b>{nameMap[badge.rarity]}</b> odznakę tej kategorii aby
+              obejrzeć szczegóły.
+            </p>
+          )}
         </div>
       </div>
     </div>
