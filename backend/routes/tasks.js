@@ -1,7 +1,7 @@
 import express from "express";
 import pool from "../db/index.js";
 import { verifyToken } from "../middleware/verifyToken.js";
-
+import { addExp } from "../utils/addExp.js";
 export default function tasksRoutes() {
   const router = express.Router();
 
@@ -135,7 +135,6 @@ export default function tasksRoutes() {
         }
       }
 
-
       await client.query(
         `
     INSERT INTO task_attempts (user_id, task_id, correct)
@@ -190,21 +189,20 @@ export default function tasksRoutes() {
       streak_days = Number(streak_days || 0);
       highest_streak = Number(highest_streak || 0);
 
-      exp += earnedExp;
       money += earnedCoins;
 
       //aktualizuj badge z kasą
       updateBadges("money", userId, earnedCoins);
 
-      let leveledUp = false;
-      while (exp >= level * 100) {
-        exp -= level * 100;
-        level += 1;
-        leveledUp = true;
-      }
+      const expResult = addExp(exp, level, earnedExp);
+      exp = expResult.exp;
+      level = expResult.level;
+      const leveledUp = expResult.leveledUp;
+      const levelsGained = expResult.levelsGained;
+      
       if (leveledUp) {
         // aktualizuj badge z levelami
-        updateBadges("level", userId, 1);
+        updateBadges("level", userId, levelsGained);
       }
 
       // Streak +1 jeśli dzisiaj jeszcze nie zwiększaliśmy
