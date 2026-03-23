@@ -14,7 +14,7 @@ function BadgeDetailsModal({ closeModalHandler, badge }) {
         </div>
 
         <div className="modal-info-container">
-          <img src={"../avatar1.png"} alt={`badge ${badge.name} icon`} />
+          <img src={badge.icon_url} alt={`badge ${badge.name} icon`} />
           <p className="modal-badge-name">{badge.name}</p>
           <p className="modal-badge-description">{badge.description}</p>
           {badge.displayDetails && (
