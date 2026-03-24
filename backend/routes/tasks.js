@@ -80,6 +80,7 @@ export default function tasksRoutes() {
    */
   router.post("/session", verifyToken, async (req, res) => {
     const client = await pool.connect();
+
     try {
       const userId = req.user.id;
       const { class_level, category_id, subcategory_id, results } = req.body;
@@ -109,15 +110,17 @@ export default function tasksRoutes() {
       await client.query("BEGIN");
 
       const tasksRes = await client.query(
-        `SELECT id, points
-       FROM tasks
-       WHERE id = ANY($1::int[])`,
+        `
+      SELECT id, points
+      FROM tasks
+      WHERE id = ANY($1::int[])
+      `,
         [taskIds],
       );
 
       const pointsMap = new Map();
       for (const row of tasksRes.rows) {
-        pointsMap.set(row.id, Number(row.points || 0));
+        pointsMap.set(Number(row.id), Number(row.points || 0));
       }
 
       let earnedExp = 0;
@@ -137,9 +140,9 @@ export default function tasksRoutes() {
 
       await client.query(
         `
-    INSERT INTO task_attempts (user_id, task_id, correct)
-    SELECT $1, UNNEST($2::int[]), UNNEST($3::boolean[]);
-  `,
+      INSERT INTO task_attempts (user_id, task_id, correct)
+      SELECT $1, UNNEST($2::int[]), UNNEST($3::boolean[])
+      `,
         [userId, taskIds, correctArray],
       );
 
@@ -154,18 +157,6 @@ export default function tasksRoutes() {
         updated_at    = NOW()
       `,
         [userId, catId, totalQuestions, correctCount],
-      );
-
-      await client.query(
-        `
-      INSERT INTO user_activity_log (user_id, date, tasks_solved, correct_answers)
-      VALUES ($1, CURRENT_DATE, $2, $3)
-      ON CONFLICT (user_id, date)
-      DO UPDATE SET
-        tasks_solved    = user_activity_log.tasks_solved    + EXCLUDED.tasks_solved,
-        correct_answers = user_activity_log.correct_answers + EXCLUDED.correct_answers
-      `,
-        [userId, totalQuestions, correctCount],
       );
 
       const userRes = await client.query(
@@ -189,57 +180,86 @@ export default function tasksRoutes() {
       streak_days = Number(streak_days || 0);
       highest_streak = Number(highest_streak || 0);
 
+      // aktualizacja monet
       money += earnedCoins;
 
-      //aktualizuj badge z kasą
-      updateBadges("money", userId, earnedCoins);
+      // badge za kasę
+      await updateBadges(client, "money", userId, earnedCoins);
 
+      // exp / level
       const expResult = addExp(exp, level, earnedExp);
       exp = expResult.exp;
       level = expResult.level;
       const leveledUp = expResult.leveledUp;
       const levelsGained = expResult.levelsGained;
-      
+
       if (leveledUp) {
-        // aktualizuj badge z levelami
-        updateBadges("level", userId, levelsGained);
+        await updateBadges(client, "level", userId, level, true);
       }
 
-      // Streak +1 jeśli dzisiaj jeszcze nie zwiększaliśmy
-      const activityResult = await pool.query(
-        `SELECT date
-       FROM user_activity_log
-       WHERE user_id = $1
-       ORDER BY date DESC
-       LIMIT 1`,
+      // Pobierz ostatnią aktywność PRZED zapisem dzisiejszej aktywności
+      const activityResult = await client.query(
+        `
+      SELECT date
+      FROM user_activity_log
+      WHERE user_id = $1
+      ORDER BY date DESC
+      LIMIT 1
+      `,
         [userId],
       );
 
-      const lastSolvedDate = new Date(activityResult.rows[0].date);
-
       const today = normalize(new Date());
-      const fromDb = normalize(lastSolvedDate);
-
-      if (Number.isNaN(fromDb.getTime())) {
-        return res
-          .status(500)
-          .json({ message: "Nieprawidłowa data w user_activity_log" });
-      }
-
-      const diffInDays = Math.floor((today - fromDb) / (1000 * 60 * 60 * 24));
       let didUpdateStreak = false;
-      if (diffInDays != 0) {
-        streak_days += 1;
+
+      if (activityResult.rowCount === 0) {
+        // Nowy użytkownik - pierwsza aktywność
+        streak_days = 1;
         didUpdateStreak = true;
+      } else {
+        const lastSolvedDate = new Date(activityResult.rows[0].date);
+        const fromDb = normalize(lastSolvedDate);
+
+        if (Number.isNaN(fromDb.getTime())) {
+          throw new Error("Nieprawidłowa data w user_activity_log");
+        }
+
+        const diffInDays = Math.floor((today - fromDb) / (1000 * 60 * 60 * 24));
+
+        if (diffInDays === 1) {
+          // aktywność dzień po dniu
+          streak_days += 1;
+          didUpdateStreak = true;
+        } else if (diffInDays > 1) {
+          // przerwana passa
+          streak_days = 1;
+          didUpdateStreak = true;
+        }
+        // diffInDays === 0 -> już była aktywność dzisiaj, nie zwiększamy
       }
+
       if (didUpdateStreak) {
-        updateBadges("streak", userId, 1);
+        await updateBadges(client, "streak", userId, 1);
       }
-      updateBadges("tasks", userId, correctCount);
+
+      await updateBadges(client, "tasks", userId, correctCount);
 
       if (streak_days > highest_streak) {
         highest_streak = streak_days;
       }
+
+      // dopiero teraz zapis dzisiejszej aktywności
+      await client.query(
+        `
+      INSERT INTO user_activity_log (user_id, date, tasks_solved, correct_answers)
+      VALUES ($1, CURRENT_DATE, $2, $3)
+      ON CONFLICT (user_id, date)
+      DO UPDATE SET
+        tasks_solved    = user_activity_log.tasks_solved    + EXCLUDED.tasks_solved,
+        correct_answers = user_activity_log.correct_answers + EXCLUDED.correct_answers
+      `,
+        [userId, totalQuestions, correctCount],
+      );
 
       await client.query(
         `
@@ -289,9 +309,20 @@ export default function tasksRoutes() {
 }
 const normalize = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
-async function updateBadges(badgeKey, userId, addingValue) {
-  // pobierz aktualnie zdobywaną odznakę money
-  const { rows } = await pool.query(
+async function updateBadges(
+  db,
+  badgeKey,
+  userId,
+  addingValue,
+  useAbsoluteValue = false,
+) {
+  console.log("[tasks/updateBadges] start", {
+    badgeKey,
+    userId,
+    addingValue,
+    useAbsoluteValue,
+  });
+  const { rows } = await db.query(
     `SELECT ub.id, ub.badge_id, ub.progress_value, ub.start_date, b.requirement_value, b.rarity
     FROM user_badge_progress ub
     JOIN badges b ON b.id = ub.badge_id
@@ -300,21 +331,32 @@ async function updateBadges(badgeKey, userId, addingValue) {
     [userId, badgeKey],
   );
   const currentlyAcqouringBadge = rows[0];
-  if (!currentlyAcqouringBadge) return; //
+  if (!currentlyAcqouringBadge) {
+    console.log("[tasks/updateBadges] no active badge", { badgeKey, userId });
+    return;
+  }
 
   const today = normalize(new Date());
-  const newValue = currentlyAcqouringBadge.progress_value + addingValue;
+  const currentProgress = Number(currentlyAcqouringBadge.progress_value || 0);
+  const incomingValue = Number(addingValue || 0);
+  const newValue = useAbsoluteValue
+    ? Math.max(currentProgress, incomingValue)
+    : currentProgress + incomingValue;
+  console.log("[tasks/updateBadges] computed progress", {
+    badgeKey,
+    userId,
+    badgeProgressId: currentlyAcqouringBadge.id,
+    rarity: currentlyAcqouringBadge.rarity,
+    requirementValue: currentlyAcqouringBadge.requirement_value,
+    currentProgress,
+    incomingValue,
+    newValue,
+  });
   if (newValue >= currentlyAcqouringBadge.requirement_value) {
-    // zamknij tego badga ->
-    // 1. ustaw mu progress_value = requrement_value
-    // 2. ustaw mu completed = true
-    // 3. completed_at aktualna data
-    // 4. days_to_complete
-
     const startDate = normalize(new Date(currentlyAcqouringBadge.start_date));
     const diffInDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
 
-    await pool.query(
+    await db.query(
       `
       UPDATE user_badge_progress
       SET progress_value = $1,
@@ -334,19 +376,18 @@ async function updateBadges(badgeKey, userId, addingValue) {
       ],
     );
 
-    // 5. wystartuj progress następnego badga (jeśli ten nie jest diamondem)
     if (currentlyAcqouringBadge.rarity != "diamond") {
       const nextRarityMap = {
         wood: "silver",
         silver: "gold",
         gold: "diamond",
       };
-      const nextBadgeId = await pool.query(
+      const nextBadgeId = await db.query(
         `SELECT id FROM badges
           WHERE rarity=$1 AND badge_key=$2`,
         [nextRarityMap[currentlyAcqouringBadge.rarity], badgeKey],
       );
-      await pool.query(
+      await db.query(
         `
       INSERT INTO user_badge_progress (user_id, badge_id, progress_value, start_date, last_update, completed)
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -355,18 +396,21 @@ async function updateBadges(badgeKey, userId, addingValue) {
       );
     }
 
-    // 6. dodaj badge'a do tabeli user_badges
-    await pool.query(
+    const insertUserBadgeResult = await db.query(
       `
       INSERT INTO user_badges (user_id, badge_id, earned_at, highlighted)
       VALUES ($1, $2, $3, $4)
       `,
       [userId, currentlyAcqouringBadge.badge_id, today, false],
     );
+    console.log("[tasks/updateBadges] inserted user_badges", {
+      badgeKey,
+      userId,
+      badgeId: currentlyAcqouringBadge.badge_id,
+      rowCount: insertUserBadgeResult.rowCount,
+    });
   } else {
-    // aktualizuj tego badga
-    // 1. zwieksz mu progrss_value o addingValue
-    await pool.query(
+    await db.query(
       `
       UPDATE user_badge_progress
       SET progress_value = $1,
@@ -375,5 +419,11 @@ async function updateBadges(badgeKey, userId, addingValue) {
       `,
       [newValue, today, currentlyAcqouringBadge.id],
     );
+    console.log("[tasks/updateBadges] updated progress only", {
+      badgeKey,
+      userId,
+      badgeProgressId: currentlyAcqouringBadge.id,
+      newValue,
+    });
   }
 }
