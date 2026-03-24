@@ -10,14 +10,18 @@ export default function userRoutes(pool) {
   router.get("/me", verifyToken, async (req, res) => {
     try {
       const userId = req.user.id;
+
       const userResult = await pool.query(
         `SELECT id, name, username, email, level, money, streak_days, streak_frozen, avatar, exp, highest_streak
-       FROM users WHERE id = $1`,
+       FROM users
+       WHERE id = $1`,
         [userId],
       );
+
       if (userResult.rowCount === 0) {
         return res.status(404).json({ message: "Użytkownik nie znaleziony" });
       }
+
       const user = userResult.rows[0];
 
       const todayResult = await pool.query(
@@ -26,18 +30,66 @@ export default function userRoutes(pool) {
        WHERE user_id = $1 AND date = CURRENT_DATE`,
         [userId],
       );
+
       const todayRow = todayResult.rows[0];
-      const todayTasks = todayRow?.tasks_solved || 0;
-      const todayCorrect = todayRow?.correct_answers || 0;
+      const todayTasks = Number(todayRow?.tasks_solved || 0);
+      const todayCorrect = Number(todayRow?.correct_answers || 0);
 
       const bestResult = await pool.query(
-        `SELECT MAX(tasks_solved) AS best_daily_tasks
+        `SELECT COALESCE(MAX(tasks_solved), 0) AS best_daily_tasks
        FROM user_activity_log
        WHERE user_id = $1`,
         [userId],
       );
-      const bestDailyTasks = bestResult.rows[0]?.best_daily_tasks || 0;
-      //id, name, username, email, level, money, streak_days, streak_frozen, avatar, exp, highest_streak
+
+      const bestDailyTasks = Number(bestResult.rows[0].best_daily_tasks);
+
+      const totalResult = await pool.query(
+        `SELECT COALESCE(SUM(tasks_solved), 0) AS total_tasks_solved
+       FROM user_activity_log
+       WHERE user_id = $1`,
+        [userId],
+      );
+
+      const totalTasksSolved = Number(totalResult.rows[0].total_tasks_solved);
+
+      const highlightedBadgesResult = await pool.query(
+        `SELECT
+         ub.badge_id,
+         ub.earned_at,
+         ub.highlighted,
+         b.*
+       FROM user_badges ub
+       JOIN badges b ON b.id = ub.badge_id
+       WHERE ub.user_id = $1
+         AND ub.highlighted = true
+       ORDER BY ub.earned_at DESC`,
+        [userId],
+      );
+
+      const highlightedBadges = highlightedBadgesResult.rows;
+
+      const last7DaysTasksResult = await pool.query(
+        `SELECT
+     TO_CHAR(gs.day::date, 'YYYY-MM-DD') AS date,
+     COALESCE(ual.tasks_solved, 0) AS tasks_solved
+   FROM generate_series(
+     CURRENT_DATE - INTERVAL '6 days',
+     CURRENT_DATE,
+     INTERVAL '1 day'
+   ) AS gs(day)
+   LEFT JOIN user_activity_log ual
+     ON ual.user_id = $1
+    AND ual.date = gs.day::date
+   ORDER BY gs.day ASC`,
+        [userId],
+      );
+
+      const last7DaysTasks = last7DaysTasksResult.rows.map((row) => ({
+        date: row.date,
+        tasks_solved: Number(row.tasks_solved),
+      }));
+
       res.json({
         id: user.id,
         name: user.name,
@@ -49,12 +101,15 @@ export default function userRoutes(pool) {
         money: user.money,
         streak_days: user.streak_days,
         highest_streak: user.highest_streak,
-        birth_date: user.birth_date,
         streak_frozen: user.streak_frozen,
 
         today_tasks_solved: todayTasks,
         today_correct_answers: todayCorrect,
         best_daily_tasks_solved: bestDailyTasks,
+        total_tasks_solved: totalTasksSolved,
+
+        highlighted_badges: highlightedBadges,
+        last_7_days_tasks: last7DaysTasks,
       });
     } catch (error) {
       console.error("❌ Błąd przy pobieraniu danych użytkownika:", error);

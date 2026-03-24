@@ -9,6 +9,7 @@ import categoryRoutes from "./routes/categories.js";
 import tasksRoutes from "./routes/tasks.js";
 import badgeRoutes from "./routes/badges.js";
 import shopRoutes from './routes/shop.js';
+import statisticsRoutes from "./routes/statistics.js";
 
 dotenv.config();
 const { Pool } = pkg;
@@ -31,6 +32,7 @@ app.use("/api/categories", categoryRoutes(pool));
 app.use("/api/tasks", tasksRoutes(pool));
 app.use("/api/badges", badgeRoutes(pool));
 app.use("/api/shop", shopRoutes(pool));
+app.use("/api/statistics", statisticsRoutes(pool))
 
 // Start serwera
 app.listen(PORT, () => {
