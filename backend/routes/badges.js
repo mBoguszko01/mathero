@@ -1,7 +1,3 @@
-//chce pobrać wszystkie badge -- tabela badges
-//potem chce pobrać badge odblokowane przez użytkownika -- userbadges
-//potem pobieram aktualny progress badgy -- user_badge_progress
-//niech rarity oznacza 'poziom' odznaki - czyli za level 5 -- wood, level 10 -- silver, level 25 -- gold, level 50 -- diamond
 import express from "express";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -107,11 +103,6 @@ export default function badgeRoutes(pool) {
     }
     return res.json({message:"Badge highlighted successfully"
     });
-    //check if there are already 3 badges selected
-    //YES:
-    //
-    //NO:
-    //set selected badge
   });
   router.post("/unsetHighlighted/:badgeId", verifyToken, async (req, res) => {
     const userId = req.user.id;
@@ -146,11 +137,6 @@ export default function badgeRoutes(pool) {
     }
     return res.json({message:"Badge unhighlighted successfully"
     });
-    //check if there are already 3 badges selected
-    //YES:
-    //
-    //NO:
-    //set selected badge
   });
 
   return router;
