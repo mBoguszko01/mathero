@@ -35,7 +35,11 @@ export default function badgeRoutes(pool) {
         const isUnlocked = usersBadges.rows.some(
           (b) => b.badge_id === badge.id,
         );
-        return { ...badge, isUnlocked };
+        const isHighlighted = usersBadges.rows.some(
+          (b) => (b.badge_id === badge.id && b.highlighted),
+        );
+
+        return { ...badge, isUnlocked, isHighlighted };
       });
 
       // 1) Grupowanie po badge_key
@@ -98,16 +102,16 @@ export default function badgeRoutes(pool) {
         `UPDATE user_badges
           SET highlighted = true
           WHERE user_id = $1 AND badge_id=$2
-        `, [userId, badgeId]
+        `,
+        [userId, badgeId],
       );
     }
-    return res.json({message:"Badge highlighted successfully"
-    });
+    return res.json({ message: "Badge highlighted successfully" });
   });
   router.post("/unsetHighlighted/:badgeId", verifyToken, async (req, res) => {
     const userId = req.user.id;
     const badgeId = req.params.badgeId;
-    
+
     const { rows: isUnlocked } = await pool.query(
       `SELECT EXISTS(SELECT 1 FROM user_badges WHERE user_id=$1 AND badge_id=$2)`,
       [userId, badgeId],
@@ -122,7 +126,7 @@ export default function badgeRoutes(pool) {
       `SELECT COUNT(*) FROM user_badges WHERE user_id=$1 AND badge_id=$2 AND highlighted=true`,
       [userId, badgeId],
     );
-  
+
     if (Number(checkIfHighlighted[0].count) === 0) {
       return res.status(409).json({
         error: `Badge is already not highlighted`,
@@ -132,11 +136,11 @@ export default function badgeRoutes(pool) {
         `UPDATE user_badges
           SET highlighted = false
           WHERE user_id = $1 AND badge_id=$2
-        `, [userId, badgeId]
+        `,
+        [userId, badgeId],
       );
     }
-    return res.json({message:"Badge unhighlighted successfully"
-    });
+    return res.json({ message: "Badge unhighlighted successfully" });
   });
 
   return router;
