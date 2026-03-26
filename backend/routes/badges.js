@@ -75,6 +75,83 @@ export default function badgeRoutes(pool) {
       res.status(500).json({ message: `Błąd serwera: ${error.message}` });
     }
   });
+  router.post("/setHighlighted/:badgeId", verifyToken, async (req, res) => {
+    const userId = req.user.id;
+    const badgeId = req.params.badgeId;
+    //check if unlocked
+    const { rows: isUnlocked } = await pool.query(
+      `SELECT EXISTS(SELECT 1 FROM user_badges WHERE user_id=$1 AND badge_id=$2)`,
+      [userId, badgeId],
+    );
+    if (!isUnlocked[0].exists) {
+      return res.status(404).json({
+        error: `User does not have badge with id=${badgeId} unlocked`,
+      });
+    }
+
+    const { rows: howManyHighlighted } = await pool.query(
+      `SELECT COUNT(*) FROM user_badges WHERE user_id=$1 AND highlighted=true`,
+      [userId],
+    );
+    if (Number(howManyHighlighted[0].count) === 3) {
+      return res.status(409).json({
+        error: `Maximum number of badges highlighted`,
+      });
+    } else {
+      await pool.query(
+        `UPDATE user_badges
+          SET highlighted = true
+          WHERE user_id = $1 AND badge_id=$2
+        `, [userId, badgeId]
+      );
+    }
+    return res.json({message:"Badge highlighted successfully"
+    });
+    //check if there are already 3 badges selected
+    //YES:
+    //
+    //NO:
+    //set selected badge
+  });
+  router.post("/unsetHighlighted/:badgeId", verifyToken, async (req, res) => {
+    const userId = req.user.id;
+    const badgeId = req.params.badgeId;
+    
+    const { rows: isUnlocked } = await pool.query(
+      `SELECT EXISTS(SELECT 1 FROM user_badges WHERE user_id=$1 AND badge_id=$2)`,
+      [userId, badgeId],
+    );
+    if (!isUnlocked[0].exists) {
+      return res.status(404).json({
+        error: `User does not have badge with id=${badgeId} unlocked`,
+      });
+    }
+
+    const { rows: checkIfHighlighted } = await pool.query(
+      `SELECT COUNT(*) FROM user_badges WHERE user_id=$1 AND badge_id=$2 AND highlighted=true`,
+      [userId, badgeId],
+    );
+  
+    if (Number(checkIfHighlighted[0].count) === 0) {
+      return res.status(409).json({
+        error: `Badge is already not highlighted`,
+      });
+    } else {
+      await pool.query(
+        `UPDATE user_badges
+          SET highlighted = false
+          WHERE user_id = $1 AND badge_id=$2
+        `, [userId, badgeId]
+      );
+    }
+    return res.json({message:"Badge unhighlighted successfully"
+    });
+    //check if there are already 3 badges selected
+    //YES:
+    //
+    //NO:
+    //set selected badge
+  });
 
   return router;
 }
