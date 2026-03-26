@@ -1,3 +1,6 @@
-const DailyGoal = () => {}
-export default DailyGoal
+import FeatureNotImplemented from "../components/FeatureNotImplemented";
+const DailyGoal = () => {
+    return <FeatureNotImplemented />;
+};
+export default DailyGoal;
 

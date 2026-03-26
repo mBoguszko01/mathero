@@ -1,0 +1,10 @@
+.feature-not-implemented-wrapper {
+  display: flex;
+  justify-content: center;
+}
+.feature-not-implemented-container {
+  border: 2px solid #0098ed;
+  border-radius: 10px;
+  background-color: #e6f4ff;
+  padding: 3rem;
+}
