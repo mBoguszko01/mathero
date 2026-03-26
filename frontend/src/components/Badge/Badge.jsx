@@ -2,7 +2,6 @@ import "./Badge.css";
 const Badge = ({ badgeData, showDetailsHandler }) => {
   const { id, name, isUnlocked } = badgeData;
 
-  console.log(badgeData);
   return (
     <div
       className="badge-container"

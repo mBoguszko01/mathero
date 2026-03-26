@@ -4,13 +4,76 @@ import "../styles/Badges.css";
 import BadgeDetailsModal from "../components/BadgeDetailsModal/BadgeDetailsModal";
 
 const Badges = () => {
+  const [showDetails, setShowDetails] = useState(false);
+  const [badgeDetails, setBadgeDetails] = useState(null);
+  const reducer = (state, action) => {
+    switch (action.type) {
+      case "FETCH_STARTED": {
+        return { status: "loading", error: null, badges: null };
+      }
+      case "FETCH_SUCCESS": {
+        const data = action.payload.data;
+        return { status: "success", error: null, badges: data };
+      }
+      case "FETCH_ERROR": {
+        return { status: "error", error: action.payload.error, badges: null };
+      }
+      case "SET_AS_HIGHLIGHTED": {
+        const targetId = action.payload.badgeId;
+        setBadgeDetails((prev) => ({
+          ...prev,
+          isHighlighted: true,
+        }));
+        return {
+          ...state,
+          badges: {
+            ...state.badges,
+            badgesMap: Object.fromEntries(
+              Object.entries(state.badges.badgesMap).map(([key, badges]) => [
+                key,
+                badges.map((badge) =>
+                  badge.id === targetId
+                    ? { ...badge, isHighlighted: true }
+                    : badge,
+                ),
+              ]),
+            ),
+          },
+        };
+      }
+      case "UNSET_AS_HIGHLIGHTED": {
+        const targetId = action.payload.badgeId;
+        setBadgeDetails((prev) => ({
+          ...prev,
+          isHighlighted: false,
+        }));
+        return {
+          ...state,
+          badges: {
+            ...state.badges,
+            badgesMap: Object.fromEntries(
+              Object.entries(state.badges.badgesMap).map(([key, badges]) => [
+                key,
+                badges.map((badge) =>
+                  badge.id === targetId
+                    ? { ...badge, isHighlighted: false }
+                    : badge,
+                ),
+              ]),
+            ),
+          },
+        };
+      }
+      default: {
+        return { ...state };
+      }
+    }
+  };
   const [badges, dispatch] = useReducer(reducer, {
     status: "idle",
     error: null,
     badges: null,
   });
-  const [showDetails, setShowDetails] = useState(false);
-  const [badgeDetails, setBadgeDetails] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,6 +105,9 @@ const Badges = () => {
       controller.abort();
     };
   }, []);
+  useEffect(() => {
+    console.log(badges);
+  }, [badges]);
 
   function openModal(badge) {
     setShowDetails(true);
@@ -50,10 +116,68 @@ const Badges = () => {
     const bodyElement = document.querySelector("body");
     bodyElement.classList.add("modal-open");
   }
-  function closeModal() {
+  function closeModal(badgeId) {
     const bodyElement = document.querySelector("body");
     bodyElement.classList.remove("modal-open");
     setShowDetails(false);
+  }
+  async function setAsHighlighted(badgeId) {
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/badges/setHighlighted/${badgeId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        signal,
+      },
+    )
+      .then((r) => {
+        if (!r.ok) throw new Error("error!");
+        return r.json();
+      })
+      .then(() => {
+        dispatch({ type: "SET_AS_HIGHLIGHTED", payload: { badgeId } });
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+
+    console.log(res);
+  }
+  async function unsetAsHighlighted(badgeId) {
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/badges/unsetHighlighted/${badgeId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        signal,
+      },
+    )
+      .then((r) => {
+        if (!r.ok) throw new Error("error!");
+        return r.json();
+      })
+      .then(() => {
+        dispatch({ type: "UNSET_AS_HIGHLIGHTED", payload: { badgeId } });
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+
+    console.log(res);
   }
 
   return (
@@ -84,29 +208,12 @@ const Badges = () => {
         <BadgeDetailsModal
           closeModalHandler={closeModal}
           badge={badgeDetails}
+          setAsHighlighted={setAsHighlighted}
+          unsetAsHighlighted={unsetAsHighlighted}
         />
       )}
     </>
   );
 };
+
 export default Badges;
-
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "FETCH_STARTED": {
-      return { status: "loading", error: null, badges: null };
-    }
-    case "FETCH_SUCCESS": {
-      const data = action.payload.data;
-      console.log(data);
-
-      return { status: "success", error: null, badges: data };
-    }
-    case "FETCH_ERROR": {
-      return { status: "error", error: action.payload.error, badges: null };
-    }
-    default: {
-      return { ...state };
-    }
-  }
-};

@@ -1,11 +1,11 @@
 import "./BadgeDetailsModal.css";
-function BadgeDetailsModal({ closeModalHandler, badge }) {
+function BadgeDetailsModal({ closeModalHandler, badge, setAsHighlighted, unsetAsHighlighted }) {
   const nameMap = {
     silver: "drewnianą",
     gold: "srebrną",
     diamond: "złotą",
   };
-
+  const isHighlighted = badge.isHighlighted;
   return (
     <div className="modal-background">
       <div className="modal-container">
@@ -28,6 +28,8 @@ function BadgeDetailsModal({ closeModalHandler, badge }) {
                 {badge.progress_value}/{badge.requirement_value} (
                 {(badge.progress_value / badge.requirement_value) * 100}%)
               </p>
+              {!isHighlighted && <button onClick={()=>{setAsHighlighted(badge.id)}}>Oznacz jako wyróżniona odznaka</button>}
+              {isHighlighted && <button onClick={()=>{unsetAsHighlighted(badge.id)}}>Odznacz jako wyróżniona odznaka</button>}
             </div>
           )}
           {badge.displayDetails === false && (
