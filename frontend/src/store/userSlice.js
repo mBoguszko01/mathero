@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { userApi } from "../api/userApi";
+import SetAvatarModal from "../components/SetAvatarModal/SetAvatarModal";
 
 export const fetchUserData = createAsyncThunk(
   "user/fetchUserData",
@@ -52,6 +53,12 @@ const userSlice = createSlice({
         money: action.payload.money,
         level: action.payload.level
       };
+    },
+    updateAvatar(state, action){
+      state.data = {
+        ...state.data,
+        avatar: action.payload.avatar
+      };
     }
   },
   extraReducers: (builder) => {
@@ -74,6 +81,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { logout, updateStreak, updateInfoAfterSession, updateInfoAfterPruchase } =
+export const { logout, updateStreak, updateInfoAfterSession, updateInfoAfterPruchase, updateAvatar } =
   userSlice.actions;
 export default userSlice.reducer;

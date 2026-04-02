@@ -21,7 +21,7 @@ const TasksPopUpStats = ({
         <p>
           {didLevelUp
             ? `Gratulacje! Osiągnąłeś ${user.level} poziom doświadczenia!`
-            : `Do nastętpnego poziomu brakuje Ci jeszcze ${
+            : `Do następnego poziomu brakuje Ci jeszcze ${
                 user.level * 100 - user.exp
               } punktów doświadczenia.`}
         </p>

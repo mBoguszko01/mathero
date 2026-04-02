@@ -1,5 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 const MobileNavbar = ({ streak, money }) => {
+  const user = useSelector((state) => state.user.data);
   const bottomNavSlots = [
     {
       icon: "../house.png",
@@ -17,7 +19,7 @@ const MobileNavbar = ({ streak, money }) => {
       marginTopValue: "8px",
     },
     { icon: "../store.png", location: "/app/shop", marginTopValue: "11px" },
-    { icon: "../avatar1.png", location: "/app/profile", marginTopValue: "0" },
+    { icon: user.avatar, location: "/app/profile", marginTopValue: "0" },
   ];
 
   const classNameValue = "user-mobile-lower-navbar-tab-element";

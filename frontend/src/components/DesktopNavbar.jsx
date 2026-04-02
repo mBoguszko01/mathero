@@ -1,6 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 const DesktopNavbar = ({streak, money}) => {
   const location = useLocation().pathname;
+  const user = useSelector((state) => state.user.data);
   return (
     <nav className="user-desktop-navbar-wrapper">
       <div className="user-desktop-navbar-container">
@@ -55,7 +57,7 @@ const DesktopNavbar = ({streak, money}) => {
 
         <Link to="/app/profile" tabIndex={-1}>
           <img
-            src="../avatar15.png"
+            src={user.avatar}
             className="user-desktop-navbar-profile-pic"
           />
         </Link>

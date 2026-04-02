@@ -34,7 +34,7 @@ const Dashboard = () => {
             to="/app/profile"
             className="dashboard-btn dashboard-btn-profile"
           >
-            <img src="../avatar1.png" />
+            <img src={user.avatar} />
             Profil
           </Link>
           <Link to="/app/ranking" className="dashboard-btn">

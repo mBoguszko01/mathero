@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useState } from "react";
 import "../styles/Profile.css";
 import WeeklyTasksChart from "../components/WeeklyTasksChart/WeeklyTasksChart.jsx";
+import SetAvatarModal from "../components/SetAvatarModal/SetAvatarModal.jsx";
 
 const Profile = () => {
   const user = useSelector((state) => state.user.data);
-  console.log(user);
-
+  const [showSetAvatarModal, setShowSetAvatarModel] = useState(false);
   const level = user?.level ?? 1;
   const exp = user?.exp ?? 0;
   const expToNextLevel = level * 100;
@@ -64,84 +65,94 @@ const Profile = () => {
   ];
 
   return (
-    <div className="profile-page">
-      <div className="profile-hero-card">
-        <div className="profile-hero-main">
-          <div className="profile-avatar-shell">
-            <img src={avatar} alt={`Awatar użytkownika ${username}`} />
+    <>
+    {showSetAvatarModal && <SetAvatarModal closeModalHandler={closeModal} />}
+      <div className="profile-page">
+        <div className="profile-hero-card">
+          <div className="profile-hero-main">
+            <div className="profile-avatar-shell" onClick={openModal}>
+              <img src={avatar} alt={`Awatar użytkownika ${username}`} />
+            </div>
+            <div className="profile-hero-copy">
+              <p className="profile-overline">Profil gracza</p>
+              <h1>{username}</h1>
+              <p className="profile-subtitle">
+                Poziom {level} i {exp} XP zdobyte w matematycznej przygodzie.
+              </p>
+            </div>
           </div>
-          <div className="profile-hero-copy">
-            <p className="profile-overline">Profil gracza</p>
-            <h1>{username}</h1>
-            <p className="profile-subtitle">
-              Poziom {level} i {exp} XP zdobyte w matematycznej przygodzie.
-            </p>
+
+          <div className="profile-level-card">
+            <div className="profile-level-card-heading">
+              <span>Postęp do kolejnego poziomu</span>
+              <strong>{Math.round(progressPercent)}%</strong>
+            </div>
+            <div className="profile-level-bars">{generateProgressBars()}</div>
+            <div className="profile-level-card-footer">
+              <span>
+                {exp}/{expToNextLevel} XP
+              </span>
+              <span>Lv. {level}</span>
+            </div>
+          </div>
+        </div>
+        <div className="profile-section">
+          <div className="profile-section-heading">
+            <h2>Wyróżnione odznaki</h2>
+            <div className="profile-badges-grid">
+              {user.highlighted_badges.map((badge) => {
+                return (
+                  <div className="profile-badges-card ">
+                    <img
+                      className={`profile-badges-card-${badge.rarity}`}
+                      src={`${badge.icon_url}`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="profile-link-wrapper">
+              <Link to="/app/badges" className="profile-quick-link">
+                Ustaw wyróżnione odznaki
+              </Link>
+            </div>
           </div>
         </div>
 
-        <div className="profile-level-card">
-          <div className="profile-level-card-heading">
-            <span>Postęp do kolejnego poziomu</span>
-            <strong>{Math.round(progressPercent)}%</strong>
+        <div className="profile-section">
+          <div className="profile-section-heading">
+            <h2>Twoje statystyki</h2>
+            <p>Najważniejsze liczby związane z Twoją aktywnością w MATHero.</p>
           </div>
-          <div className="profile-level-bars">{generateProgressBars()}</div>
-          <div className="profile-level-card-footer">
-            <span>
-              {exp}/{expToNextLevel} XP
-            </span>
-            <span>Lv. {level}</span>
+
+          <div className="profile-stats-grid">
+            {stats.map((stat) => (
+              <div key={stat.label} className={"profile-stat-card"}>
+                <span className="profile-stat-label">{stat.label}</span>
+                <strong className="profile-stat-value">
+                  {stat.value}
+                  {stat.suffix && <span>{stat.suffix}</span>}
+                </strong>
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
-      <div className="profile-section">
-        <div className="profile-section-heading">
-          <h2>Wyróżnione odznaki</h2>
-          <div className="profile-badges-grid">
-            {user.highlighted_badges.map((badge) => {
-              return (
-                <div className="profile-badges-card ">
-                  <img
-                    className={`profile-badges-card-${badge.rarity}`}
-                    src={`${badge.icon_url}`}
-                  />
-                </div>
-              );
-            })}
-          </div>
+          <WeeklyTasksChart data={user.last_7_days_tasks} />
           <div className="profile-link-wrapper">
-            <Link to="/app/badges" className="profile-quick-link">
-              Ustaw wyróżnione odznaki
+            <Link to="/app/statistics" className="profile-quick-link">
+              Pokaż więcej statystyk
             </Link>
           </div>
         </div>
       </div>
-
-      <div className="profile-section">
-        <div className="profile-section-heading">
-          <h2>Twoje statystyki</h2>
-          <p>Najważniejsze liczby związane z Twoją aktywnością w MATHero.</p>
-        </div>
-
-        <div className="profile-stats-grid">
-          {stats.map((stat) => (
-            <div key={stat.label} className={"profile-stat-card"}>
-              <span className="profile-stat-label">{stat.label}</span>
-              <strong className="profile-stat-value">
-                {stat.value}
-                {stat.suffix && <span>{stat.suffix}</span>}
-              </strong>
-            </div>
-          ))}
-        </div>
-        <WeeklyTasksChart data={user.last_7_days_tasks} />
-        <div className="profile-link-wrapper">
-          <Link to="/app/statistics" className="profile-quick-link">
-            Pokaż więcej statystyk
-          </Link>
-        </div>
-      </div>
-    </div>
+    </>
   );
+  //utils
+  function openModal() {
+    setShowSetAvatarModel(true);
+  }
+  function closeModal() {
+    setShowSetAvatarModel(false);
+  }
 };
 
 export default Profile;
