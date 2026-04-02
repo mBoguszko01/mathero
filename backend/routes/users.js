@@ -275,6 +275,69 @@ export default function userRoutes(pool) {
       console.error(`highest-streak error: ${e}`);
     }
   });
+  router.post("/setNewAvatar/:avatarName", verifyToken, async (req, res) => {
+    const userId = req.user.id;
+    const avatarName = req.params.avatarName;
+
+    if (!isCorrectAvatarName(avatarName)) {
+      return res.status(404).json({
+        message: "Wrong avatar name",
+      });
+    }
+
+    if (isPremiumAvatar(avatarName)) {
+      const avatarIdMap = {
+        11: "1",
+        12: "5",
+        13: "6",
+        14: "7",
+        15: "8",
+      };
+      const avatarId = avatarIdMap[avatarName.slice(6)];
+      const { rows: isUnlocked } = await pool.query(
+        `SELECT EXISTS(SELECT 1 FROM user_items WHERE user_id=$1 AND item_id=$2)`,
+        [userId, avatarId],
+      );
+      if (!isUnlocked[0].exists) {
+        return res.status(404).json({
+          error: `User does not have avatar with id=${avatarId} unlocked`,
+        });
+      }
+    }
+    await pool.query(
+      `UPDATE users
+          SET avatar = $1
+          WHERE id = $2
+        `,
+      [`/${avatarName}.png`, userId],
+    );
+
+    return res.json({ message: "Avatar set successfully" });
+
+    //ustaw
+  });
+  router.get("/getPurchasedAvatars", verifyToken, async (req, res) => {
+    const userId = req.user.id;
+    const { rows: avatars } = await pool.query(
+      ` SELECT *
+      FROM user_items ui
+      JOIN shop_items si ON ui.item_id = si.id
+      WHERE ui.user_id = $1`,
+      [userId],
+    );
+    return res.json({
+      data: avatars,
+    });
+  });
 
   return router;
+  //Util
+  function isCorrectAvatarName(avatarName) {
+    const regex = /^avatar([1-9]|1[0-5])$/;
+    return regex.test(avatarName);
+  }
+  function isPremiumAvatar(avatarName) {
+    const regex = /^avatar(1[1-5])$/;
+    return regex.test(avatarName);
+  }
 }
