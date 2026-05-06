@@ -45,6 +45,7 @@
   object-position: center top;
   display: block;
   background: #fff;
+  cursor: pointer;
 }
 
 .profile-overline {
@@ -258,6 +259,14 @@
 }
 .profile-badges-card-wood {
   border: 4px solid #9d6c3c;
+}
+.profile-badges-no-selected-badges-info-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 7rem;
+  background-color: #fafafa;
+  border-radius: 15px;
 }
 @media (max-width: 1024px) {
   .profile-page {

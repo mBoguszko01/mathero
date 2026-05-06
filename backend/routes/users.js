@@ -334,19 +334,6 @@ export default function userRoutes(pool) {
 
     //ustaw
   });
-  router.get("/getPurchasedAvatars", verifyToken, async (req, res) => {
-    const userId = req.user.id;
-    const { rows: avatars } = await pool.query(
-      ` SELECT *
-      FROM user_items ui
-      JOIN shop_items si ON ui.item_id = si.id
-      WHERE ui.user_id = $1`,
-      [userId],
-    );
-    return res.json({
-      data: avatars,
-    });
-  });
 
   return router;
   //Util

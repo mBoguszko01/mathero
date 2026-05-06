@@ -63,10 +63,9 @@ const Profile = () => {
       suffix: "🧠",
     },
   ];
-
   return (
     <>
-    {showSetAvatarModal && <SetAvatarModal closeModalHandler={closeModal} />}
+      {showSetAvatarModal && <SetAvatarModal closeModalHandler={closeModal} />}
       <div className="profile-page">
         <div className="profile-hero-card">
           <div className="profile-hero-main">
@@ -99,18 +98,23 @@ const Profile = () => {
         <div className="profile-section">
           <div className="profile-section-heading">
             <h2>Wyróżnione odznaki</h2>
-            <div className="profile-badges-grid">
-              {user.highlighted_badges.map((badge) => {
-                return (
-                  <div className="profile-badges-card ">
-                    <img
-                      className={`profile-badges-card-${badge.rarity}`}
-                      src={`${badge.icon_url}`}
-                    />
-                  </div>
-                );
-              })}
-            </div>
+            {user.highlighted_badges.length > 0 && (
+              <div className="profile-badges-grid">
+                {user.highlighted_badges.map((badge) => {
+                  return (
+                    <div className="profile-badges-card ">
+                      <img
+                        className={`profile-badges-card-${badge.rarity}`}
+                        src={`${badge.icon_url}`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {user.highlighted_badges.length === 0 && <div className="profile-badges-no-selected-badges-info-container">
+                <p>Nie wybrano żadnej wyróżnionej odznaki</p>
+              </div>}
             <div className="profile-link-wrapper">
               <Link to="/app/badges" className="profile-quick-link">
                 Ustaw wyróżnione odznaki

@@ -76,7 +76,7 @@ const SetAvatarModal = ({ closeModalHandler }) => {
           }));
           setAvatars((prev) => [...prev, ...mapped]);
         })
-        .catch((e) => {});
+        .catch((e) => {console.error(e)});
       return res;
     }
     fetchPurchasedAvatars();

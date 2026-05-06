@@ -5,7 +5,7 @@ import "../styles/Tasks.css";
 import { useDispatch } from "react-redux";
 import { updateStreak, updateInfoAfterSession } from "../store/userSlice";
 
-const initialStats = { exp: 0, coins: 0, correctAnswers: 0 };
+const initialStats = { exp: 0, coins: 0, correctAnswers: 0, leveledUp: false };
 
 const Tasks = () => {
   const [params] = useSearchParams();
@@ -145,17 +145,19 @@ const Tasks = () => {
         if (data.user.didUpdateStreak) {
           dispatch(updateStreak());
         }
-
+        const leveledUp =  data?.earned?.leveledUp;
         setStats({
           exp: data?.earned?.exp || 0,
           coins: data?.earned?.coins || 0,
           correctAnswers: data?.earned?.correctAnswers || 0,
+          leveledUp
         });
         dispatch(
           updateInfoAfterSession({
             exp: data?.earned?.exp || 0,
             coins: data?.earned?.coins || 0,
-          }),
+            leveledUp
+          })
         );
       }
     } catch (err) {
@@ -190,6 +192,7 @@ const Tasks = () => {
           exp={stats.exp}
           coins={stats.coins}
           correctAnswers={stats.correctAnswers}
+          leveledUp={stats.leveledUp}
           onRetry={resetSession}
         />
       )}

@@ -5,7 +5,7 @@ const TasksPopUpStats = ({
   exp,
   coins,
   correctAnswers,
-  didLevelUp,
+  leveledUp,
   onRetry,
 }) => {
   const user = useSelector((state) => state.user.data);
@@ -19,7 +19,7 @@ const TasksPopUpStats = ({
           {coins > 0 ? ` oraz ${coins}🪙 monet!` : ""}
         </p>
         <p>
-          {didLevelUp
+          {leveledUp
             ? `Gratulacje! Osiągnąłeś ${user.level} poziom doświadczenia!`
             : `Do następnego poziomu brakuje Ci jeszcze ${
                 user.level * 100 - user.exp

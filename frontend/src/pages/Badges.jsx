@@ -1,11 +1,14 @@
 import BadgesRow from "../components/BadgesRow/BadgesRow";
 import { useEffect, useState, useReducer } from "react";
+import { useDispatch } from "react-redux";
+import { updateHighlightedBadges } from "../store/userSlice";
 import "../styles/Badges.css";
 import BadgeDetailsModal from "../components/BadgeDetailsModal/BadgeDetailsModal";
 
 const Badges = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [badgeDetails, setBadgeDetails] = useState(null);
+  const userSliceDispatch = useDispatch();
   const reducer = (state, action) => {
     switch (action.type) {
       case "FETCH_STARTED": {
@@ -20,10 +23,6 @@ const Badges = () => {
       }
       case "SET_AS_HIGHLIGHTED": {
         const targetId = action.payload.badgeId;
-        setBadgeDetails((prev) => ({
-          ...prev,
-          isHighlighted: true,
-        }));
         return {
           ...state,
           badges: {
@@ -43,10 +42,6 @@ const Badges = () => {
       }
       case "UNSET_AS_HIGHLIGHTED": {
         const targetId = action.payload.badgeId;
-        setBadgeDetails((prev) => ({
-          ...prev,
-          isHighlighted: false,
-        }));
         return {
           ...state,
           badges: {
@@ -95,7 +90,7 @@ const Badges = () => {
         .then((d) => {
           dispatch({ type: "FETCH_SUCCESS", payload: { data: d } });
         })
-        .catch((e) => {});
+        .catch(() => {});
       return res;
     }
     dispatch({ type: "FETCH_STARTED" });
@@ -116,7 +111,7 @@ const Badges = () => {
     const bodyElement = document.querySelector("body");
     bodyElement.classList.add("modal-open");
   }
-  function closeModal(badgeId) {
+  function closeModal() {
     const bodyElement = document.querySelector("body");
     bodyElement.classList.remove("modal-open");
     setShowDetails(false);
@@ -142,6 +137,19 @@ const Badges = () => {
         return r.json();
       })
       .then(() => {
+        setBadgeDetails((prev) => ({
+          ...prev,
+          isHighlighted: true,
+        }));
+        userSliceDispatch(
+          updateHighlightedBadges({
+            type: "SET",
+            badge: {
+              ...badgeDetails,
+              isHighlighted: true,
+            },
+          }),
+        );
         dispatch({ type: "SET_AS_HIGHLIGHTED", payload: { badgeId } });
       })
       .catch((e) => {
@@ -171,6 +179,16 @@ const Badges = () => {
         return r.json();
       })
       .then(() => {
+        setBadgeDetails((prev) => ({
+          ...prev,
+          isHighlighted: false,
+        }));
+        userSliceDispatch(
+          updateHighlightedBadges({
+            type: "UNSET",
+            badgeId,
+          }),
+        );
         dispatch({ type: "UNSET_AS_HIGHLIGHTED", payload: { badgeId } });
       })
       .catch((e) => {
