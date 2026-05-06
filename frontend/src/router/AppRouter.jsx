@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import PublicLayout from "../layouts/PublicLayout.jsx";
 import AppLayout from "../layouts/AppLayout.jsx";
 import Home from "../pages/Home.jsx";
@@ -21,7 +21,7 @@ import RankingDetails from "../pages/RankingDetails.jsx";
 
 export const AppRouter = () => {
   return (
-    <BrowserRouter>
+    <>
       <ScrollToTop />
       <Routes>
         <Route element={<PublicLayout />}>
@@ -50,6 +50,6 @@ export const AppRouter = () => {
           <Route path="/app/tasks" element={<Tasks />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </>
   );
 };

@@ -23,11 +23,6 @@ export default function AppLayout() {
       <div className="mobile-frame">
         <UserNavbar />
         <div className="app-layout-content">
-          {location !== "/app/home" && (
-            <Link to="/app/home" className="app-layout-logo">
-              Strona główna
-            </Link>
-          )}
           <Outlet />
         </div>
       </div>

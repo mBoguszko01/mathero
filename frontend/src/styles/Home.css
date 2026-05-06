@@ -52,8 +52,9 @@
 }
 .home-lower-container {
   width: 20rem;
-  margin: auto;
+  margin: 2rem auto;
   line-height: 1.5rem;
+
 }
 .hero-img {
   width: 100%;
@@ -64,6 +65,9 @@
 }
 .home-buttons-container {
   align-items: center;
+}
+.home-lower-text-block-container{
+  margin-bottom: 1rem;
 }
 @media (min-width: 425px) {
   .home-upper-container {
@@ -152,3 +156,4 @@
     font-size: 10vw
   }
 }
+

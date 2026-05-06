@@ -29,4 +29,8 @@ footer div{
     footer{
         margin-bottom: 4rem; /*wysokosc footera - wysokosc navbar mobile*/
     }
+
+    .footer--auth-page{
+        margin-bottom: 0;
+    }
 }

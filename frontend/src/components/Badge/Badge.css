@@ -11,9 +11,9 @@
   cursor: pointer;
   transition: all 200ms ease-in-out;
 }
-.badge-container:hover{
+.badge-container:hover {
   transform: translateY(-3px);
-   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 .badge-container img {
   width: 100px;
@@ -23,6 +23,10 @@
   object-position: center top;
   display: block;
 }
-.badge-locked{
+.badge-locked {
   filter: grayscale(1);
+}
+.badge-highlighted {
+  border: 1px solid #d4af37;
+  box-shadow: 0 0 18px rgba(212, 175, 55, 0.65);
 }

@@ -1,10 +1,10 @@
 import "./Badge.css";
 const Badge = ({ badgeData, showDetailsHandler }) => {
-  const { id, name, isUnlocked } = badgeData;
-
+  const { id, name, isUnlocked, isHighlighted } = badgeData;
+  const badgeContainerClass = isHighlighted ? "badge-container badge-highlighted" : "badge-container";
   return (
     <div
-      className="badge-container"
+      className={badgeContainerClass}
       key={id}
       onClick={() => {
         showDetailsHandler(badgeData);

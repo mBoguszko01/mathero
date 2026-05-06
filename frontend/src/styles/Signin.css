@@ -23,6 +23,7 @@
   border: 2px solid #5eabd6;
   height: 2rem;
   border-radius: 10px;
+  padding-left:0.3rem
 }
 .signin-form input:focus {
   border: 3px solid #579dc5;

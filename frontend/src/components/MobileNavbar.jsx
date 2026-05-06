@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 const MobileNavbar = ({ streak, money }) => {
   const user = useSelector((state) => state.user.data);
