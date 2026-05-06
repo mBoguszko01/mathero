@@ -64,6 +64,10 @@
   background-color: #a82d1f3e;
   border: 4px solid #a82c1f;
 }
+.tasks-correct-selected-answer{
+  background-color: #2f8f463e;
+  border: 4px solid #2f8f46;
+}
 .popup-background{
   position: absolute;
   top: 0;

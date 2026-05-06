@@ -22,6 +22,7 @@ const Tasks = () => {
   const [question, setQuestion] = useState("");
   const [showCorrect, setShowCorrect] = useState(false);
   const [wrongAnswer, setWrongAnswer] = useState(null);
+  const [correctAnswer, setCorrectAnswer] = useState(null);
   const [isLocked, setIsLocked] = useState(false);
 
   const [stats, setStats] = useState(initialStats);
@@ -51,6 +52,7 @@ const Tasks = () => {
   useEffect(() => {
     setIsLocked(false);
     setWrongAnswer(null);
+    setCorrectAnswer(null);
   }, [question]);
 
   if (!tasks) return <p>Pobieranie zadań...</p>;
@@ -70,11 +72,13 @@ const Tasks = () => {
     ]);
 
     if (isCorrect) {
+      setCorrectAnswer(ans);
       setShowCorrect(true);
       setInfo("Super! To prawidłowa odpowiedź");
 
       setTimeout(() => {
         setShowCorrect(false);
+        setCorrectAnswer(null);
         setCountCorrect((prev) => prev + 1);
 
         if (countAnswered < 4) {
@@ -85,7 +89,7 @@ const Tasks = () => {
             { task_id: currentTask.id, correct: isCorrect },
           ]);
         }
-      }, 100);
+      }, 1500);
     } else {
       setWrongAnswer(ans);
       setShowCorrect(true);
@@ -103,7 +107,7 @@ const Tasks = () => {
             { task_id: currentTask.id, correct: isCorrect },
           ]);
         }
-      }, 100);
+      }, 1500);
     }
   };
 
@@ -175,6 +179,7 @@ const Tasks = () => {
     setQuestion("");
     setShowCorrect(false);
     setWrongAnswer(null);
+    setCorrectAnswer(null);
     setIsLocked(false);
 
     setStats({ ...initialStats });
@@ -216,6 +221,8 @@ const Tasks = () => {
                 className={
                   wrongAnswer == ans
                     ? "tasks-answer tasks-wrong-answer"
+                    : correctAnswer == ans
+                      ? "tasks-answer tasks-correct-selected-answer"
                     : "tasks-answer"
                 }
                 onClick={() => selectAnswerHandler(ans)}

@@ -1,12 +1,11 @@
 import { Outlet } from "react-router";
 import { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUserData } from "../store/userSlice";
 import UserNavbar from "../components/UserNavbar";
 import "../styles/AppLayout.css";
 export default function AppLayout() {
-  const location = useLocation().pathname;
   const dispatch = useDispatch();
   useEffect(() => {
     const token = localStorage.getItem("token");
