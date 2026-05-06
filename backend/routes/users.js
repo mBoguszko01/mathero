@@ -275,6 +275,24 @@ export default function userRoutes(pool) {
       console.error(`highest-streak error: ${e}`);
     }
   });
+  router.get("/getPurchasedAvatars", verifyToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const purchasedAvatars = await pool.query(
+        `SELECT shop_items.name, shop_items.img_name
+        FROM user_items
+        INNER JOIN shop_items ON user_items.item_id=shop_items.id
+        WHERE user_items.user_id=$1`,
+        [userId],
+      );
+
+      return res.json({
+        data: purchasedAvatars.rows,
+      });
+    } catch (e) {
+      console.error(`getPurchasedAvatars error: ${e}`);
+    }
+  });
 
   return router;
 }
