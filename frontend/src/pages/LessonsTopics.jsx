@@ -1,6 +1,6 @@
 import "../styles/LessonsTopics.css";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SelectingTopicList from "../components/SelectingTopicList";
 
 const normalizeClassLevels = (levels) => {
@@ -35,12 +35,24 @@ const LessonsTopics = () => {
     { name: "Klasa 7", level: 7 },
     { name: "Klasa 8", level: 8 },
   ];
+
   const [selectedClass, setSelectedClass] = useState(null);
-  const [allTopics, setAllTopics] = useState([]);
-  const [topicsArray, setTopicsArray] = useState(null);
+  const [allTopics, setAllTopics] = useState(null);
   const [subtopicsArray, setSubtopicsArray] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [selectedSubtopic, setSelectedSubtopic] = useState(null);
+  const [topicsError, setTopicsError] = useState("");
+
+  const topicsArray = useMemo(() => {
+    if (selectedClass === null || !allTopics) {
+      return null;
+    }
+
+    return allTopics.filter((topic) =>
+      hasClassLevel(topic.class_levels, selectedClass)
+    );
+  }, [allTopics, selectedClass]);
+
   const setMainTopic = (topic) => {
     setSelectedTopic(topic);
     const subtopics = topic.subcategories || [];
@@ -52,44 +64,69 @@ const LessonsTopics = () => {
       subtopicsForSelectedClass.length > 0 ? subtopicsForSelectedClass : subtopics
     );
   };
+
   const deselectTopic = () => {
     setSelectedTopic(null);
   };
+
   const setSubTopic = (subtopic) => {
     setSelectedSubtopic(subtopic);
-    navigate(`/app/tasks?class=${selectedClass}&topic=${selectedTopic.id}&subtopic=${subtopic.id}`);
-  };
-  const setClass = (classObj) => {
-    const classNumber = classObj.level;
-    setTopicsArray(
-      allTopics.filter((topic) => hasClassLevel(topic.class_levels, classNumber))
+    navigate(
+      `/app/tasks?class=${selectedClass}&topic=${selectedTopic.id}&subtopic=${subtopic.id}`
     );
-    setSelectedClass(classNumber);
+  };
+
+  const setClass = (classObj) => {
+    setSelectedClass(classObj.level);
     setSelectedTopic(null);
     setSelectedSubtopic(null);
+    setSubtopicsArray(null);
   };
 
-   useEffect(() => {
+  useEffect(() => {
+    let isActive = true;
+
     fetch(`${import.meta.env.VITE_API_URL}/api/categories/full`)
-      .then((res) => res.json())
-      .then((data) => setAllTopics(data))
-      .catch((err) => console.error(err));
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Nie udało się pobrać tematów lekcji.");
+        }
+
+        return res.json();
+      })
+      .then((data) => {
+        if (isActive) {
+          setAllTopics(data);
+          setTopicsError("");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        if (isActive) {
+          setAllTopics([]);
+          setTopicsError("Nie udało się pobrać tematów lekcji.");
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, []);
-
-
-  if (!allTopics) {
-    return <div>Ładowanie tematów lekcji...</div>;
-  }
 
   return (
     <div>
       <h1>Wybierz temat lekcji:</h1>
       <div className="lessons-topics-wrapper">
+        {topicsError && <div>{topicsError}</div>}
         {selectedClass === null && (
           <SelectingTopicList list={classes} handleClick={setClass} />
         )}
-        {selectedTopic === null && selectedClass !== null && (
-          <SelectingTopicList list={topicsArray} handleClick={setMainTopic} />
+        {selectedTopic === null && selectedClass !== null && !topicsError && (
+          <SelectingTopicList
+            list={topicsArray}
+            handleClick={setMainTopic}
+            isLoading={!allTopics}
+          />
         )}
         {selectedTopic !== null && selectedSubtopic === null && (
           <SelectingTopicList
@@ -102,4 +139,5 @@ const LessonsTopics = () => {
     </div>
   );
 };
+
 export default LessonsTopics;
