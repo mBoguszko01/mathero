@@ -5,6 +5,7 @@ import pool from "../db/index.js";
 import dotenv from "dotenv";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { startNewBadges } from "../utils/startNewBadges.js";
+import { logEvent } from "../utils/logEvent.js";
 
 dotenv.config();
 
@@ -61,6 +62,10 @@ export default function authRoutes() {
       );
 
       const user = newUser.rows[0];
+
+      await logEvent(pool, user.id, "user_registered_step1", {
+        has_birth_date: Boolean(birthDate),
+      });
 
       const tempToken = jwt.sign(
         {
@@ -124,6 +129,11 @@ export default function authRoutes() {
         [username, avatar, userId],
       );
 
+      await logEvent(pool, userId, "user_registered_completed", {
+        username_set: true,
+        avatar,
+      });
+
       const finalToken = jwt.sign(
         {
           id: userId,
@@ -185,6 +195,9 @@ export default function authRoutes() {
 
       const token = makeFullToken(user);
       startNewBadges(user.id, pool); // jesli uzytkownik loguje sie poraz pierwszy lub od ostatniego logowania dodano nowe odznaki, startuje progress tej odznaki na poziomie wood
+      await logEvent(pool, user.id, "user_logged_in", {
+        is_completed: Boolean(user.is_completed),
+      });
 
       res.json({
         message: "Zalogowano pomyślnie",

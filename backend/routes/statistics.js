@@ -164,7 +164,8 @@ export default function statisticsRoutes(pool) {
           ) AS accuracy
         FROM task_attempts ta
         JOIN tasks t ON t.id = ta.task_id
-        JOIN categories c ON c.id = t.category_id
+        JOIN subcategories s ON s.id = t.subcategory_id
+        JOIN categories c ON c.id = s.category_id
         WHERE ta.user_id = $1
         GROUP BY c.id, c.name
         ORDER BY attempts DESC, c.name ASC

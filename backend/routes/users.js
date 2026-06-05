@@ -2,6 +2,7 @@ import express from "express";
 import { getAllUsers } from "../controllers/usersController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import resetStreak from "../utils/resetStreak.js";
+import { logEvent } from "../utils/logEvent.js";
 
 export default function userRoutes(pool) {
   const router = express.Router();
@@ -182,6 +183,13 @@ export default function userRoutes(pool) {
 
         // Brak freeza -> reset
         await resetStreak(userId, streak_days, highest_streak, pool);
+        await logEvent(pool, userId, "streak_reset", {
+          previous_streak: Number(streak_days || 0),
+          highest_streak: Number(highest_streak || 0),
+          days_since_last_activity: diffInDays,
+          had_freeze: Boolean(streak_frozen),
+          reason: "inactivity",
+        });
 
         // Dociągnij aktualne wartości po resecie (żeby nie zwracać "user is not defined")
         const afterReset = await pool.query(
@@ -200,6 +208,13 @@ export default function userRoutes(pool) {
       // 4) Jeśli przerwa > 3 dni -> reset zawsze
       if (diffInDays > 3) {
         await resetStreak(userId, streak_days, highest_streak, pool);
+        await logEvent(pool, userId, "streak_reset", {
+          previous_streak: Number(streak_days || 0),
+          highest_streak: Number(highest_streak || 0),
+          days_since_last_activity: diffInDays,
+          had_freeze: Boolean(streak_frozen),
+          reason: "inactivity",
+        });
 
         const afterReset = await pool.query(
           `SELECT streak_days, highest_streak
@@ -232,6 +247,9 @@ export default function userRoutes(pool) {
       if (topExpPlayers.rows.length === 0) {
         return res.json({ no_users: "No users found." });
       }
+      await logEvent(pool, req.user.id, "ranking_viewed", {
+        ranking_type: "top-exp",
+      });
       return res.json({
         data: topExpPlayers.rows,
       });
@@ -250,6 +268,9 @@ export default function userRoutes(pool) {
       if (topEarningsPlayers.rows.length === 0) {
         return res.json({ no_users: "No users found." });
       }
+      await logEvent(pool, req.user.id, "ranking_viewed", {
+        ranking_type: "top-earnings",
+      });
       return res.json({
         data: topEarningsPlayers.rows,
       });
@@ -268,6 +289,9 @@ export default function userRoutes(pool) {
       if (topHighestStreak.rows.length === 0) {
         return res.json({ no_users: "No users found." });
       }
+      await logEvent(pool, req.user.id, "ranking_viewed", {
+        ranking_type: "highest-streak",
+      });
       return res.json({
         data: topHighestStreak.rows,
       });
@@ -329,6 +353,12 @@ export default function userRoutes(pool) {
         `,
       [`/${avatarName}.png`, userId],
     );
+
+    await logEvent(pool, userId, "avatar_changed", {
+      avatar: avatarName,
+      avatar_path: `/${avatarName}.png`,
+      premium: isPremiumAvatar(avatarName),
+    });
 
     return res.json({ message: "Avatar set successfully" });
 

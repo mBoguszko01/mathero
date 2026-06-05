@@ -1,6 +1,7 @@
 import express from "express";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { addExp } from "../utils/addExp.js";
+import { logEvent } from "../utils/logEvent.js";
 //util
 
 export default function shopRoutes(pool) {
@@ -106,6 +107,14 @@ export default function shopRoutes(pool) {
         badgeId: currentlyAcqouringBadge.badge_id,
         rowCount: insertUserBadgeResult.rowCount,
       });
+
+      await logEvent(pool, userId, "badge_unlocked", {
+        badge_id: currentlyAcqouringBadge.badge_id,
+        badge_key: badgeKey,
+        rarity: currentlyAcqouringBadge.rarity,
+        days_to_complete: diffInDays,
+        progress_value: currentlyAcqouringBadge.requirement_value,
+      });
     } else {
       await pool.query(
         `
@@ -144,6 +153,8 @@ export default function shopRoutes(pool) {
         `,
         [userId],
       );
+
+      await logEvent(pool, userId, "shop_viewed");
 
       return res.json({
         data: result.rows,
@@ -206,6 +217,24 @@ export default function shopRoutes(pool) {
    ON CONFLICT (user_id, item_id) DO NOTHING`,
             [userId, itemId],
           );
+          await pool.query(
+            `
+            UPDATE users
+            SET money = money - $1
+            WHERE id = $2
+            `,
+            [item.price, userId],
+          );
+          await logEvent(pool, userId, "shop_item_purchased", {
+            item_id: item.id,
+            item_name: item.name,
+            item_type: item.type,
+            price: item.price,
+            effect_type: item.effect_type,
+            effect_value: item.effect_value,
+            money_before: user.money,
+            money_after: user.money - item.price,
+          });
           return res.json({
             message: "Item purchased successfully",
             data: {
@@ -241,6 +270,23 @@ export default function shopRoutes(pool) {
               [expResult.exp, expResult.level, item.price, userId],
             );
 
+            await logEvent(pool, userId, "shop_item_purchased", {
+              item_id: item.id,
+              item_name: item.name,
+              item_type: item.type,
+              price: item.price,
+              effect_type: item.effect_type,
+              effect_value: item.effect_value,
+              money_before: user.money,
+              money_after: user.money - item.price,
+              exp_before: user.exp,
+              exp_after: expResult.exp,
+              level_before: user.level,
+              level_after: expResult.level,
+              leveled_up: expResult.leveledUp,
+              levels_gained: expResult.levelsGained,
+            });
+
             return res.json({
               message: "Item purchased successfully",
               data: {
@@ -256,8 +302,56 @@ export default function shopRoutes(pool) {
               },
             });
           }
+          case "freeze": {
+            if (user.streak_frozen) {
+              return res.status(400).json({
+                error: "Streak freeze already active",
+              });
+            }
+
+            await pool.query(
+              `
+              UPDATE users
+              SET streak_frozen = TRUE,
+                  money = money - $1
+              WHERE id = $2
+              `,
+              [item.price, userId],
+            );
+
+            await logEvent(pool, userId, "shop_item_purchased", {
+              item_id: item.id,
+              item_name: item.name,
+              item_type: item.type,
+              price: item.price,
+              effect_type: item.effect_type,
+              effect_value: item.effect_value,
+              money_before: user.money,
+              money_after: user.money - item.price,
+              streak_frozen_before: user.streak_frozen,
+              streak_frozen_after: true,
+            });
+
+            return res.json({
+              message: "Item purchased successfully",
+              data: {
+                item,
+                user: {
+                  exp: user.exp,
+                  level: user.level,
+                  money: user.money - item.price,
+                  streak_frozen: true,
+                },
+              },
+            });
+          }
           default: {
-            return res.status(500).json({
+            console.warn("[shop/purchase] unsupported item effect_type", {
+              userId,
+              itemId,
+              effectType,
+            });
+            return res.status(400).json({
               error: `There is no handler for this item purchase`,
             });
           }

@@ -1,5 +1,6 @@
 import express from "express";
 import { verifyToken } from "../middleware/verifyToken.js";
+import { logEvent } from "../utils/logEvent.js";
 
 export default function badgeRoutes(pool) {
   const router = express.Router();
@@ -106,6 +107,9 @@ export default function badgeRoutes(pool) {
         [userId, badgeId],
       );
     }
+    await logEvent(pool, userId, "badge_highlighted", {
+      badge_id: Number(badgeId),
+    });
     return res.json({ message: "Badge highlighted successfully" });
   });
   router.post("/unsetHighlighted/:badgeId", verifyToken, async (req, res) => {
@@ -140,6 +144,9 @@ export default function badgeRoutes(pool) {
         [userId, badgeId],
       );
     }
+    await logEvent(pool, userId, "badge_unhighlighted", {
+      badge_id: Number(badgeId),
+    });
     return res.json({ message: "Badge unhighlighted successfully" });
   });
 

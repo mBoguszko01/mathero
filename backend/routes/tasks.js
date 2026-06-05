@@ -2,16 +2,20 @@ import express from "express";
 import pool from "../db/index.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { addExp } from "../utils/addExp.js";
+import { logEvent } from "../utils/logEvent.js";
 export default function tasksRoutes() {
   const router = express.Router();
 
   const shuffleArray = (arr) => arr.sort(() => Math.random() - 0.5);
+  const isNumericAnswer = (answer) => Number.isFinite(Number(answer));
 
   // Funkcja generująca 3 błędne odpowiedzi
   const generateWrongAnswers = (correct) => {
     const wrongAnswers = new Set();
+    let attempts = 0;
 
-    while (wrongAnswers.size < 3) {
+    while (wrongAnswers.size < 3 && attempts < 100) {
+      attempts += 1;
       const offset = Math.floor(Math.random() * 11) - 5; // -5..+5
       const value = correct + offset;
 
@@ -21,6 +25,81 @@ export default function tasksRoutes() {
     }
 
     return Array.from(wrongAnswers);
+  };
+
+  const generateTextAnswers = (correct, candidateAnswers) => {
+    const normalizedCorrect = String(correct);
+    const wrongAnswers = Array.from(
+      new Set(
+        candidateAnswers
+          .map(String)
+          .filter((answer) => answer !== normalizedCorrect),
+      ),
+    ).slice(0, 3);
+
+    return shuffleArray([normalizedCorrect, ...wrongAnswers]);
+  };
+
+  const normalizePossibleAnswers = (answers) => {
+    if (Array.isArray(answers)) {
+      return answers;
+    }
+
+    if (typeof answers === "string") {
+      try {
+        const parsed = JSON.parse(answers);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  };
+
+  const extractNumbersFromQuestion = (question) =>
+    Array.from(new Set(String(question).match(/\d+/g) || []));
+
+  const isChooseNumberQuestion = (question) =>
+    /kt[oó]ra liczba|kt[oó]ry wynik|większa|mniejsza/i.test(String(question));
+
+  const isComparisonSignAnswer = (answer) =>
+    ["<", ">", "="].includes(String(answer));
+
+  const buildPossibleAnswers = (task, candidateAnswers) => {
+    const explicitAnswers = normalizePossibleAnswers(task.possible_answers);
+    if (explicitAnswers.length > 0) {
+      return shuffleArray(explicitAnswers);
+    }
+
+    if (isChooseNumberQuestion(task.question)) {
+      const numbers = extractNumbersFromQuestion(task.question);
+
+      if (numbers.length === 2 && numbers.includes(String(task.correct_answer))) {
+        return shuffleArray(numbers);
+      }
+    }
+
+    if (isComparisonSignAnswer(task.correct_answer)) {
+      return shuffleArray(["<", ">", "="]);
+    }
+
+    if (String(task.correct_answer).toLowerCase() === "tak") {
+      return shuffleArray(["tak", "nie"]);
+    }
+
+    if (String(task.correct_answer).toLowerCase() === "nie") {
+      return shuffleArray(["tak", "nie"]);
+    }
+
+    if (isNumericAnswer(task.correct_answer)) {
+      return shuffleArray([
+        Number(task.correct_answer),
+        ...generateWrongAnswers(Number(task.correct_answer)),
+      ]);
+    }
+
+    return generateTextAnswers(task.correct_answer, candidateAnswers);
   };
 
   router.get("/random", async (req, res) => {
@@ -34,25 +113,32 @@ export default function tasksRoutes() {
       }
 
       const query = `
-      SELECT id, question, correct_answer, difficulty_level
+      SELECT id, question, correct_answer, difficulty_level, possible_answers
       FROM tasks
       WHERE class_level = $1
-        AND category_id = $2
-        AND subcategory_id = $3
+        AND subcategory_id = $2
       ORDER BY RANDOM()
       LIMIT 5;
     `;
 
-      const result = await pool.query(query, [classLevel, topic, subtopic]);
+      const result = await pool.query(query, [classLevel, subtopic]);
+      const candidateAnswersRes = await pool.query(
+        `
+      SELECT DISTINCT correct_answer
+      FROM tasks
+      WHERE class_level = $1
+        AND subcategory_id = $2
+      `,
+        [classLevel, subtopic],
+      );
+      const candidateAnswers = candidateAnswersRes.rows.map(
+        (row) => row.correct_answer,
+      );
 
       const tasksWithAnswers = result.rows.map((task) => {
-        const correct = Number(task.correct_answer);
-        const wrong = generateWrongAnswers(correct);
-        const possibleAnswers = shuffleArray([correct, ...wrong]);
-
         return {
           ...task,
-          possible_answers: possibleAnswers,
+          possible_answers: buildPossibleAnswers(task, candidateAnswers),
         };
       });
 
@@ -83,10 +169,20 @@ export default function tasksRoutes() {
 
     try {
       const userId = req.user.id;
-      const { class_level, category_id, subcategory_id, results } = req.body;
+      const {
+        class_level,
+        category_id,
+        subcategory_id,
+        results,
+        device_type,
+        time_of_day,
+        session_duration,
+        avg_reaction_time,
+      } = req.body;
 
       if (
-        !class_level ||
+        class_level === undefined ||
+        class_level === null ||
         !category_id ||
         !subcategory_id ||
         !Array.isArray(results) ||
@@ -106,6 +202,10 @@ export default function tasksRoutes() {
 
       const totalQuestions = results.length;
       const correctCount = results.filter((r) => r.correct).length;
+      const deviceType = normalizeDeviceType(device_type);
+      const timeOfDay = normalizeTimeOfDay(time_of_day);
+      const sessionDuration = normalizeNonNegativeInteger(session_duration);
+      const avgReactionTime = normalizeNonNegativeNumber(avg_reaction_time);
 
       await client.query("BEGIN");
 
@@ -251,14 +351,36 @@ export default function tasksRoutes() {
       // dopiero teraz zapis dzisiejszej aktywności
       await client.query(
         `
-      INSERT INTO user_activity_log (user_id, date, tasks_solved, correct_answers)
-      VALUES ($1, CURRENT_DATE, $2, $3)
+      INSERT INTO user_activity_log (
+        user_id,
+        date,
+        tasks_solved,
+        correct_answers,
+        session_duration,
+        avg_reaction_time
+      )
+      VALUES ($1, CURRENT_DATE, $2, $3, $4, $5)
       ON CONFLICT (user_id, date)
       DO UPDATE SET
         tasks_solved    = user_activity_log.tasks_solved    + EXCLUDED.tasks_solved,
-        correct_answers = user_activity_log.correct_answers + EXCLUDED.correct_answers
+        correct_answers = user_activity_log.correct_answers + EXCLUDED.correct_answers,
+        session_duration = user_activity_log.session_duration + EXCLUDED.session_duration,
+        avg_reaction_time = CASE
+          WHEN (user_activity_log.tasks_solved + EXCLUDED.tasks_solved) > 0 THEN
+            (
+              (user_activity_log.avg_reaction_time * user_activity_log.tasks_solved)
+              + (EXCLUDED.avg_reaction_time * EXCLUDED.tasks_solved)
+            ) / (user_activity_log.tasks_solved + EXCLUDED.tasks_solved)
+          ELSE 0
+        END
       `,
-        [userId, totalQuestions, correctCount],
+        [
+          userId,
+          totalQuestions,
+          correctCount,
+          sessionDuration,
+          avgReactionTime,
+        ],
       );
 
       await client.query(
@@ -273,6 +395,25 @@ export default function tasksRoutes() {
       `,
         [exp, level, money, streak_days, highest_streak, userId],
       );
+
+      await logEvent(client, userId, "task_session_completed", {
+        class_level: classLevel,
+        category_id: catId,
+        subcategory_id: subId,
+        total_questions: totalQuestions,
+        correct_answers: correctCount,
+        earned_exp: earnedExp,
+        earned_coins: earnedCoins,
+        leveled_up: leveledUp,
+        levels_gained: levelsGained,
+        streak_days,
+        highest_streak,
+        did_update_streak: didUpdateStreak,
+        device_type: deviceType,
+        time_of_day: timeOfDay,
+        session_duration: sessionDuration,
+        avg_reaction_time: avgReactionTime,
+      });
 
       await client.query("COMMIT");
 
@@ -308,6 +449,26 @@ export default function tasksRoutes() {
   return router;
 }
 const normalize = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+function normalizeDeviceType(value) {
+  const allowed = ["mobile", "tablet", "desktop"];
+  return allowed.includes(value) ? value : null;
+}
+
+function normalizeTimeOfDay(value) {
+  const allowed = ["morning", "afternoon", "evening", "night"];
+  return allowed.includes(value) ? value : null;
+}
+
+function normalizeNonNegativeInteger(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? Math.round(number) : 0;
+}
+
+function normalizeNonNegativeNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : 0;
+}
 
 async function updateBadges(
   db,
@@ -408,6 +569,14 @@ async function updateBadges(
       userId,
       badgeId: currentlyAcqouringBadge.badge_id,
       rowCount: insertUserBadgeResult.rowCount,
+    });
+
+    await logEvent(db, userId, "badge_unlocked", {
+      badge_id: currentlyAcqouringBadge.badge_id,
+      badge_key: badgeKey,
+      rarity: currentlyAcqouringBadge.rarity,
+      days_to_complete: diffInDays,
+      progress_value: currentlyAcqouringBadge.requirement_value,
     });
   } else {
     await db.query(
