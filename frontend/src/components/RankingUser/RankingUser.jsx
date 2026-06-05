@@ -1,5 +1,5 @@
 const RankingUser = ({ rankingUser, index, rankingDetails, columnsAmmountStyle }) => {
-  const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉";
+  const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "";
   return (
     <div className={`ranking-user-container ${columnsAmmountStyle}`}>
       <p>{index + 1}</p>

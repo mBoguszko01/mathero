@@ -3,17 +3,37 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import SelectingTopicList from "../components/SelectingTopicList";
 
+const normalizeClassLevels = (levels) => {
+  if (Array.isArray(levels)) {
+    return levels.map(Number);
+  }
+
+  if (typeof levels === "string") {
+    return levels
+      .replace(/[{}]/g, "")
+      .split(",")
+      .filter((level) => level.trim() !== "")
+      .map((level) => Number(level.trim()));
+  }
+
+  return [];
+};
+
+const hasClassLevel = (levels, selectedClass) =>
+  normalizeClassLevels(levels).includes(Number(selectedClass));
+
 const LessonsTopics = () => {
   const navigate = useNavigate();
   const classes = [
-    { name: "Klasa 1" },
-    { name: "Klasa 2" },
-    { name: "Klasa 3" },
-    { name: "Klasa 4" },
-    { name: "Klasa 5" },
-    { name: "Klasa 6" },
-    { name: "Klasa 7" },
-    { name: "Klasa 8" },
+    { name: "Przedszkolaki", level: 0 },
+    { name: "Klasa 1", level: 1 },
+    { name: "Klasa 2", level: 2 },
+    { name: "Klasa 3", level: 3 },
+    { name: "Klasa 4", level: 4 },
+    { name: "Klasa 5", level: 5 },
+    { name: "Klasa 6", level: 6 },
+    { name: "Klasa 7", level: 7 },
+    { name: "Klasa 8", level: 8 },
   ];
   const [selectedClass, setSelectedClass] = useState(null);
   const [allTopics, setAllTopics] = useState([]);
@@ -23,10 +43,13 @@ const LessonsTopics = () => {
   const [selectedSubtopic, setSelectedSubtopic] = useState(null);
   const setMainTopic = (topic) => {
     setSelectedTopic(topic);
+    const subtopics = topic.subcategories || [];
+    const subtopicsForSelectedClass = subtopics.filter((sub) =>
+      hasClassLevel(sub.class_levels, selectedClass)
+    );
+
     setSubtopicsArray(
-      topic.subcategories.filter((sub) =>
-        sub.class_levels.includes(selectedClass)
-      )
+      subtopicsForSelectedClass.length > 0 ? subtopicsForSelectedClass : subtopics
     );
   };
   const deselectTopic = () => {
@@ -37,9 +60,9 @@ const LessonsTopics = () => {
     navigate(`/app/tasks?class=${selectedClass}&topic=${selectedTopic.id}&subtopic=${subtopic.id}`);
   };
   const setClass = (classObj) => {
-    const classNumber = parseInt(classObj.name.split(" ")[1]);
+    const classNumber = classObj.level;
     setTopicsArray(
-      allTopics.filter((topic) => topic.class_levels.includes(classNumber))
+      allTopics.filter((topic) => hasClassLevel(topic.class_levels, classNumber))
     );
     setSelectedClass(classNumber);
     setSelectedTopic(null);

@@ -56,6 +56,7 @@ const Shop = () => {
           exp: data.data.user.exp,
           level: data.data.user.level,
           money: data.data.user.money,
+          streak_frozen: data.data.user.streak_frozen,
         }),
       );
       if (selectedItem.type === "permanent") {

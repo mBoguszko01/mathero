@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TasksPopUpStats from "../components/TasksPopUpStats";
 import "../styles/Tasks.css";
 import { useDispatch } from "react-redux";
@@ -18,7 +18,7 @@ const Tasks = () => {
   const [tasks, setTasks] = useState(null);
   const [possibleAswers, setPossibleAnswers] = useState([]);
   const [countAnswered, setCountAnswered] = useState(0);
-  const [countCorrect, setCountCorrect] = useState(0);
+  const [, setCountCorrect] = useState(0);
   const [question, setQuestion] = useState("");
   const [showCorrect, setShowCorrect] = useState(false);
   const [wrongAnswer, setWrongAnswer] = useState(null);
@@ -32,6 +32,9 @@ const Tasks = () => {
   const [reloadKey, setReloadKey] = useState(0);
 
   const [sessionResults, setSessionResults] = useState([]);
+  const sessionStartRef = useRef(null);
+  const questionStartRef = useRef(null);
+  const reactionTimesRef = useRef([]);
 
   useEffect(() => {
     fetch(
@@ -47,6 +50,13 @@ const Tasks = () => {
   useEffect(() => {
     setQuestion(tasks?.tasks[countAnswered]?.question || "");
     setPossibleAnswers(tasks?.tasks[countAnswered]?.possible_answers || []);
+    if (tasks?.tasks[countAnswered]) {
+      const now = Date.now();
+      if (!sessionStartRef.current) {
+        sessionStartRef.current = now;
+      }
+      questionStartRef.current = now;
+    }
   }, [tasks, countAnswered]);
 
   useEffect(() => {
@@ -57,19 +67,31 @@ const Tasks = () => {
 
   if (!tasks) return <p>Pobieranie zadań...</p>;
 
-  const selectAnswerHandler = (ans) => {
-    if (isLocked) return;
-    setIsLocked(true);
+  const tasksList = tasks.tasks || [];
+  const totalTasks = tasksList.length;
 
-    const currentTask = tasks.tasks[countAnswered];
+  const selectAnswerHandler = (ans) => {
+    if (isLocked || totalTasks === 0) return;
+    setIsLocked(true);
+    const answeredAt = Date.now();
+    const reactionTimeMs = questionStartRef.current
+      ? answeredAt - questionStartRef.current
+      : 0;
+    reactionTimesRef.current = [...reactionTimesRef.current, reactionTimeMs];
+
+    const currentTask = tasksList[countAnswered];
+    if (!currentTask) return;
+
     const correctAnswer = currentTask.correct_answer;
 
     const isCorrect = ans == correctAnswer;
 
-    setSessionResults((prev) => [
-      ...prev,
+    const updatedResults = [
+      ...sessionResults,
       { task_id: currentTask.id, correct: isCorrect },
-    ]);
+    ];
+
+    setSessionResults(updatedResults);
 
     if (isCorrect) {
       setCorrectAnswer(ans);
@@ -81,13 +103,10 @@ const Tasks = () => {
         setCorrectAnswer(null);
         setCountCorrect((prev) => prev + 1);
 
-        if (countAnswered < 4) {
+        if (countAnswered < totalTasks - 1) {
           setCountAnswered((prev) => prev + 1);
         } else {
-          finalizeSession([
-            ...sessionResults,
-            { task_id: currentTask.id, correct: isCorrect },
-          ]);
+          finalizeSession(updatedResults);
         }
       }, 1500);
     } else {
@@ -99,13 +118,10 @@ const Tasks = () => {
         setShowCorrect(false);
         setWrongAnswer(null);
 
-        if (countAnswered < 4) {
+        if (countAnswered < totalTasks - 1) {
           setCountAnswered((prev) => prev + 1);
         } else {
-          finalizeSession([
-            ...sessionResults,
-            { task_id: currentTask.id, correct: isCorrect },
-          ]);
+          finalizeSession(updatedResults);
         }
       }, 1500);
     }
@@ -120,11 +136,29 @@ const Tasks = () => {
         return;
       }
 
+      const sessionDurationSeconds = sessionStartRef.current
+        ? Math.round((Date.now() - sessionStartRef.current) / 1000)
+        : 0;
+      const avgReactionTimeSeconds =
+        reactionTimesRef.current.length > 0
+          ? Number(
+              (
+                reactionTimesRef.current.reduce((sum, time) => sum + time, 0) /
+                reactionTimesRef.current.length /
+                1000
+              ).toFixed(2),
+            )
+          : 0;
+
       const payload = {
         class_level: Number(classLevel),
         category_id: Number(topic),
         subcategory_id: Number(subtopic),
         results: results ?? sessionResults,
+        device_type: getDeviceType(),
+        time_of_day: getTimeOfDay(),
+        session_duration: sessionDurationSeconds,
+        avg_reaction_time: avgReactionTimeSeconds,
       };
 
       const res = await fetch(
@@ -187,6 +221,9 @@ const Tasks = () => {
     setInfo(null);
     setShowSummary(false);
     setSessionResults([]);
+    sessionStartRef.current = null;
+    questionStartRef.current = null;
+    reactionTimesRef.current = [];
     setReloadKey((prev) => prev + 1);
   };
 
@@ -210,7 +247,7 @@ const Tasks = () => {
 
       <div className="tasks-wrapper">
         <div className="tasks-container">
-          <progress value={countAnswered + 1} max="5" />
+          <progress value={Math.min(countAnswered + 1, totalTasks)} max={totalTasks} />
           <div className="tasks-question-container">
             <span className="tasks-question">{question}</span>
           </div>
@@ -236,5 +273,22 @@ const Tasks = () => {
     </>
   );
 };
+
+function getDeviceType() {
+  const width = window.innerWidth;
+
+  if (width < 768) return "mobile";
+  if (width < 1024) return "tablet";
+  return "desktop";
+}
+
+function getTimeOfDay() {
+  const hour = new Date().getHours();
+
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 18) return "afternoon";
+  if (hour >= 18 && hour < 22) return "evening";
+  return "night";
+}
 
 export default Tasks;

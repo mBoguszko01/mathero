@@ -54,9 +54,10 @@ const userSlice = createSlice({
     updateInfoAfterPruchase(state,action){
       state.data = {
         ...state.data,
-        exp: action.payload.exp,
+        exp: action.payload.exp ?? state.data.exp,
         money: action.payload.money,
-        level: action.payload.level
+        level: action.payload.level ?? state.data.level,
+        streak_frozen: action.payload.streak_frozen ?? state.data.streak_frozen
       };
     },
     updateAvatar(state, action){
