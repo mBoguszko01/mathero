@@ -1,12 +1,13 @@
 import { Outlet } from "react-router";
-import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUserData } from "../store/userSlice";
 import UserNavbar from "../components/UserNavbar";
 import "../styles/AppLayout.css";
 export default function AppLayout() {
   const dispatch = useDispatch();
+  const [showBetaNotice, setShowBetaNotice] = useState(true);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -21,6 +22,21 @@ export default function AppLayout() {
     <div className="app-layout">
       <div className="mobile-frame">
         <UserNavbar />
+        {showBetaNotice && (
+          <div className="beta-notice" role="status">
+            <p>
+              To jest wersja beta aplikacji. W przypadku wykrycia błędu proszę o przesłanie zgłoszenia na adres e-mail: mic.boguszko@gmail.com
+            </p>
+            <button
+              type="button"
+              className="beta-notice-close"
+              aria-label="Zamknij komunikat beta"
+              onClick={() => setShowBetaNotice(false)}
+            >
+              x
+            </button>
+          </div>
+        )}
         <div className="app-layout-content">
           <Outlet />
         </div>
