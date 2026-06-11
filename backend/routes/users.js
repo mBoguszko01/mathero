@@ -240,6 +240,7 @@ export default function userRoutes(pool) {
     try {
       const topExpPlayers = await pool.query(`
           SELECT username, level, exp, avatar FROM users
+          WHERE COALESCE(is_test_user, false) = false
           ORDER BY level DESC, exp DESC
           LIMIT 100
         `);
@@ -261,6 +262,7 @@ export default function userRoutes(pool) {
     try {
       const topEarningsPlayers = await pool.query(`
           SELECT username, total_earnings, avatar FROM users
+          WHERE COALESCE(is_test_user, false) = false
           ORDER BY total_earnings DESC
           LIMIT 100
         `);
@@ -282,6 +284,7 @@ export default function userRoutes(pool) {
     try {
       const topHighestStreak = await pool.query(`
            SELECT username, highest_streak, avatar FROM users
+          WHERE COALESCE(is_test_user, false) = false
           ORDER BY highest_streak DESC
           LIMIT 100
         `);
